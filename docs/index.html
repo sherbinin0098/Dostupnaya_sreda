@@ -33,6 +33,10 @@ input[type=search]{width:100%;min-height:46px;padding:8px 12px;border:2px solid 
 .btn{display:inline-block;background:var(--brand);color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;text-decoration:none;border:0;font:inherit;cursor:pointer;margin:4px 6px 4px 0}
 .btn.alt{background:none;border:2px solid var(--brand);color:var(--brand)}
 .leg{position:absolute;left:12px;bottom:12px;background:var(--card);border-radius:12px;padding:6px 12px;z-index:900;font-size:13px;box-shadow:0 4px 14px #0003;display:flex;flex-wrap:wrap;gap:4px 14px}.leg i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px}
+.ap{border-top:1px solid var(--line);padding:10px 0;font-size:14.5px;cursor:pointer;display:block;width:100%;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;color:inherit;font-family:inherit}
+.ap b{display:block;font-size:15.5px}.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:700;margin:2px 6px 2px 0}
+.t-sent{background:#fff0c2;color:#7a5200}.t-late{background:#ffd9d9;color:#9b1c1c}.t-ok{background:#d8f3dc;color:#1b5e20}.t-bad{background:#ffd9d9;color:#9b1c1c}.t-ans{background:#dbe7ff;color:#1d3f87}
+.vl{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
 .empty{padding:16px;border:2px dashed var(--line);border-radius:12px;margin-top:12px}
 footer{margin-top:16px;font-size:13px;color:var(--muted)}footer a{color:var(--brand)}
 @media (max-width:820px){.wrap{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}#mapbox{order:-1;height:55vh}aside{border-right:0}.card{position:fixed;left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:60vh}}
@@ -51,6 +55,7 @@ footer{margin-top:16px;font-size:13px;color:var(--muted)}footer a{color:var(--br
   <h2>Вид объекта</h2><div class="chips" id="ft" role="group" aria-label="Вид объекта"></div>
   <h2>Итого</h2><div class="stat" id="stat"></div>
   <h2>Объекты</h2><div id="list"></div>
+  <h2>Обращения</h2><div class="chips" id="fa" role="group" aria-label="Обращения"><button class="chip" data-a="all" aria-pressed="true">Все</button><button class="chip" data-a="open" aria-pressed="false">Ждём ответ</button><button class="chip" data-a="late" aria-pressed="false">Срок вышел</button><button class="chip" data-a="done" aria-pressed="false">Устранено</button></div><div id="aplist"></div>
   <div class="empty" id="empty" hidden>
     <b>Данных пока нет.</b>
     <p class="muted">Выберите файлы «karta_dannye….json», которые создаёт приложение «Горыныч» (Ещё → Экспорт → «Данные для публичной карты»). Можно несколько сразу: они объединятся.</p>
@@ -76,8 +81,14 @@ const SN = {bad:"Есть нарушения", cond:"Доступно услов
 const AP = {sent:"обращение отправлено, ждём ответ", answered:"ответ получен", fixed:"нарушения устранены", refused:"получен отказ"};
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const byId = id => document.getElementById(id);
-let ALL = [], F = {s:"all", t:new Set(), q:""}, map = null, layer = null, markers = {};
+let ALL = [], F = {s:"all", t:new Set(), q:"", a:"all"}, map = null, layer = null, markers = {};
 
+const today = () => new Date().toISOString().slice(0,10);
+const dru = d => d ? d.slice(8,10)+"."+d.slice(5,7)+"."+d.slice(0,4) : "";
+function appealsOf(o){ return o.appeals && o.appeals.length ? o.appeals : (o.appeal ? [{sent:o.appeal.sent, status:o.appeal.status, to:"", subject:"", answer:"", due:""}] : []); }
+function aState(a){ if(a.status==="fixed") return ["t-ok","Устранено"]; if(a.status==="refused") return ["t-bad","Отказ или отписка"]; if(a.status==="answered") return ["t-ans","Ответ получен, ждём исполнения"];
+  return a.due && a.due<today() ? ["t-late","Срок ответа вышел "+dru(a.due)] : ["t-sent","Ждём ответ"+(a.due?" до "+dru(a.due):"")]; }
+function allAppeals(list){ const r = []; list.forEach(o=>appealsOf(o).forEach(a=>r.push({o,a}))); return r.sort((x,y)=>String(y.a.sent).localeCompare(String(x.a.sent))); }
 function merge(lists){ const m = new Map(); lists.forEach(l=>(l.objects||[]).forEach(o=>{ if(o&&isFinite(o.lat)&&isFinite(o.lon)){ const k = o.id||(o.name+o.lat); const p = m.get(k); if(!p||String(o.date)>=String(p.date)) m.set(k,o); } })); return [...m.values()]; }
 function setData(list){ ALL = list; F.t = new Set(ALL.map(o=>o.type||"Другое")); draw(); }
 function filtered(){ const q = F.q.trim().toLowerCase(); return ALL.filter(o=>(F.s==="all"||o.status===F.s)&&F.t.has(o.type||"Другое")&&(!q||(o.name+" "+o.address).toLowerCase().includes(q))); }
@@ -87,7 +98,9 @@ function draw(){
   const list = filtered(), cnt = {good:0,cond:0,bad:0,none:0}; list.forEach(o=>cnt[o.status||"none"]++);
   byId("stat").innerHTML = `<div class="st g"><b>${cnt.good}</b>соответствуют</div><div class="st r"><b>${cnt.bad}</b>с нарушениями</div><div class="st y"><b>${cnt.cond}</b>условно</div><div class="st n"><b>${cnt.none}</b>нет данных</div>`;
   const order = {bad:0,cond:1,none:2,good:3};
-  byId("list").innerHTML = list.slice().sort((a,b)=>order[a.status]-order[b.status]).map(o=>`<button class="item" data-id="${esc(o.id||o.name)}"><span class="dot" style="background:${COL[o.status]||COL.none}"></span><span><b>${esc(o.name)}</b><small>${esc(o.address||"")}${o.counts&&o.counts.bad?" · нарушений: "+o.counts.bad:""}</small></span></button>`).join("") || `<p class="muted">Ничего не найдено.</p>`;
+  byId("list").innerHTML = list.slice().sort((a,b)=>order[a.status]-order[b.status]).map(o=>`<button class="item" data-id="${esc(o.id||o.name)}"><span class="dot" style="background:${COL[o.status]||COL.none}"></span><span><b>${esc(o.name)}</b><small>${esc(o.address||"")}${o.counts&&o.counts.bad?" · нарушений: "+o.counts.bad:""}</small>${(o.violations||[]).slice(0,3).map(v=>`<span class="vl">• ${esc(v.name)}: ${esc(String(v.fact).replace(".",","))} ${esc(v.unit)} (норма: ${esc(v.norm)})</span>`).join("")}${(o.violations||[]).length>3?`<span class="vl">и ещё ${o.violations.length-3}</span>`:""}${appealsOf(o).slice(-1).map(a=>{ const st = aState(a); return `<span class="tag ${st[0]}">Обращение: ${esc(st[1])}</span>`; }).join("")}</span></button>`).join("") || `<p class="muted">Ничего не найдено.</p>`;
+  const aps = allAppeals(list).filter(({a})=>{ const k = aState(a)[0]; return F.a==="all" || (F.a==="open"&&(k==="t-sent"||k==="t-late"||k==="t-ans")) || (F.a==="late"&&k==="t-late") || (F.a==="done"&&k==="t-ok"); });
+  byId("aplist").innerHTML = aps.map(({o,a})=>{ const st = aState(a); return `<button class="ap" data-id="${esc(o.id||o.name)}"><b>${esc(o.name)}</b><span class="tag ${st[0]}">${esc(st[1])}</span><span class="muted">Отправлено ${dru(a.sent)}${a.to?" · кому: "+esc(a.to):""}${a.how?" · "+esc(a.how):""}</span>${a.subject?`<span class="vl" style="color:inherit">${esc(a.subject)}</span>`:""}${a.answer?`<span class="vl"><b style="display:inline">Ответ${a.answerDate?" от "+dru(a.answerDate):""}:</b> ${esc(a.answer)}</span>`:""}</button>`; }).join("") || `<p class="muted">Обращений нет.</p>`;
   byId("empty").hidden = ALL.length>0; byId("tools").hidden = !ALL.length;
   if(!window.L){ return; }
   if(!map){ map = L.map("map"); L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map); map.attributionControl.setPrefix(false); layer = L.layerGroup().addTo(map); map.setView([55.0302,82.9204],12); }
@@ -103,7 +116,7 @@ function show(o){
     <div class="muted">Обследование${o.round>1?" №"+o.round:""}: ${esc(o.date||"")}${o.building?" · "+esc(o.building):""}</div>
     ${o.counts?`<div class="muted">Замеров: ${Object.values(o.counts).reduce((a,b)=>a+b,0)}, нарушений: ${o.counts.bad||0}</div>`:""}
     ${(o.violations||[]).map(v=>`<div class="v"><b>${esc(v.name)}</b>Факт: ${esc(String(v.fact).replace(".",","))} ${esc(v.unit)} — ${esc(v.result)}<br><span class="muted">Требуется: ${esc(v.norm)} (${esc(v.clause)}, ${esc(v.doc)})</span>${v.fix?`<br>Что сделать: ${esc(v.fix)}`:""}</div>`).join("")}
-    ${o.appeal?`<div class="v muted">Обращение от ${esc(o.appeal.sent)}: ${esc(AP[o.appeal.status]||"")}</div>`:""}
+    ${appealsOf(o).map(a=>{ const st = aState(a); return `<div class="v"><b>Обращение от ${dru(a.sent)}</b><span class="tag ${st[0]}">${esc(st[1])}</span>${a.to?`<br>Кому: ${esc(a.to)}${a.how?" ("+esc(a.how)+")":""}`:""}${a.subject?`<br>${esc(a.subject)}`:""}${a.answer?`<br><b style="display:inline">Ответ${a.answerDate?" от "+dru(a.answerDate):""}:</b> ${esc(a.answer)}`:""}</div>`; }).join("")}
     <a class="btn alt" href="${yx}" target="_blank" rel="noopener">Открыть в Яндекс Картах</a>`;
   c.hidden = false; byId("cx").onclick = ()=>{ c.hidden = true; };
   if(map) map.setView([o.lat,o.lon],Math.max(map.getZoom(),16));
@@ -111,14 +124,16 @@ function show(o){
 async function readFiles(files){ const ls = []; for(const f of files){ try{ ls.push(JSON.parse(await f.text())); }catch(e){} } if(!ls.length){ alert("Файлы не похожи на данные карты."); return; }
   draw.fitted = false; setData(merge([{objects:ALL}, ...ls])); }
 byId("fs").onclick = e=>{ const b = e.target.closest("[data-s]"); if(!b) return; F.s = b.dataset.s; byId("fs").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b)); draw(); };
+byId("fa").onclick = e=>{ const b = e.target.closest("[data-a]"); if(!b) return; F.a = b.dataset.a; byId("fa").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b)); draw(); };
+byId("aplist").onclick = e=>{ const b = e.target.closest("[data-id]"); if(!b) return; const o = ALL.find(x=>(x.id||x.name)===b.dataset.id); if(o) show(o); };
 byId("ft").onclick = e=>{ const b = e.target.closest("[data-t]"); if(!b) return; const t = b.dataset.t; F.t.has(t) ? F.t.delete(t) : F.t.add(t); draw(); };
 byId("q").oninput = e=>{ F.q = e.target.value; draw(); };
 byId("list").onclick = e=>{ const b = e.target.closest("[data-id]"); if(!b) return; const o = ALL.find(x=>(x.id||x.name)===b.dataset.id); if(o) show(o); };
 byId("pick").onchange = e=>readFiles(e.target.files); byId("pick2").onchange = e=>readFiles(e.target.files);
 byId("dl").onclick = ()=>{ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({app:"gorynych-karta",v:1,updated:new Date().toISOString(),objects:ALL})],{type:"application/json"})); a.download = "data.json"; a.click(); };
 byId("demo").onclick = ()=>setData([
-  {id:"d1",name:"Поликлиника № 1 (пример)",address:"ул. Серебренниковская, 42",lat:55.0290,lon:82.9254,type:"Здание",building:"Реконструкция после 01.07.2016",round:1,date:"2026-10-23",counts:{good:17,bad:3},status:"bad",violations:[{name:"Высота порога",fact:30,unit:"мм",result:"Не соответствует",norm:"не более 0,014 м",clause:"п. 6.2.4",doc:"СП 59.13330.2020",fix:"Убрать порог или сделать скос"}],appeal:{sent:"2026-09-26",status:"sent"}},
-  {id:"d2",name:"Школа № 7 (пример)",address:"ул. Тестовая, 1",lat:55.0345,lon:82.9120,type:"Здание",building:"Новое строительство",round:2,date:"2026-10-20",counts:{good:20},status:"good",violations:[],appeal:{sent:"2026-08-01",status:"fixed"}},
+  {id:"d1",name:"Поликлиника № 1 (пример)",address:"ул. Серебренниковская, 42",lat:55.0290,lon:82.9254,type:"Здание",building:"Реконструкция после 01.07.2016",round:1,date:"2026-10-23",counts:{good:17,bad:3},status:"bad",violations:[{name:"Высота порога",fact:30,unit:"мм",result:"Не соответствует",norm:"не более 0,014 м",clause:"п. 6.2.4",doc:"СП 59.13330.2020",fix:"Убрать порог или сделать скос"},{name:"Ширина двери туалета",fact:0.78,unit:"м",result:"Не соответствует",norm:"не менее 0,9 м",clause:"п. 6.1.5",doc:"СП 59.13330.2020",fix:"Расширить проём"}],appeals:[{sent:"2026-09-26",due:"2026-10-26",status:"sent",to:"Департамент (пример)",how:"Через портал",subject:"Устранить нарушения на входе и в туалете",answer:"",answerDate:""}]},
+  {id:"d2",name:"Школа № 7 (пример)",address:"ул. Тестовая, 1",lat:55.0345,lon:82.9120,type:"Здание",building:"Новое строительство",round:2,date:"2026-10-20",counts:{good:20},status:"good",violations:[],appeals:[{sent:"2026-08-01",due:"2026-08-31",status:"fixed",to:"Администрация района (пример)",how:"По почте",subject:"Установить пандус у входа",answer:"Пандус установлен, проверено повторным обследованием",answerDate:"2026-09-15"}]},
   {id:"d3",name:"Тротуар, Красный проспект (пример)",address:"Красный проспект",lat:55.0325,lon:82.9320,type:"Улица",building:"",round:1,date:"2026-10-18",counts:{good:4,cond:2},status:"cond",violations:[],appeal:null}]);
 (async()=>{
   try{ const r = await fetch("data.json",{cache:"no-store"}); if(r.ok) setData(merge([await r.json()])); }catch(e){}
