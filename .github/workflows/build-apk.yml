@@ -56,19 +56,17 @@ jobs:
             rm -f "$RES/mipmap-$d/ic_launcher_foreground.png"
           done
 
-      - name: Постоянный ключ подписи (чтобы приложение обновлялось поверх)
+      - name: Постоянный ключ подписи только для этого приложения (чтобы обновлялось поверх)
         run: |
-          mkdir -p ~/.android
-          cp debug.keystore ~/.android/debug.keystore
           cat >> android/app/build.gradle <<'EOF'
 
           android {
               signingConfigs {
                   debug {
-                      storeFile file("${rootDir}/../debug.keystore")
-                      storePassword "android"
-                      keyAlias "androiddebugkey"
-                      keyPassword "android"
+                      storeFile file("${rootDir}/../gorynych-sideload.keystore")
+                      storePassword "gorynych-sideload"
+                      keyAlias "gorynych"
+                      keyPassword "gorynych-sideload"
                   }
               }
           }
@@ -87,7 +85,7 @@ jobs:
       - name: Проверка подписи постоянным ключом
         run: |
           APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
-          EXPECTED=$(keytool -exportcert -alias androiddebugkey -keystore debug.keystore -storepass android | sha256sum | cut -d' ' -f1)
+          EXPECTED=$(keytool -exportcert -alias gorynych -keystore gorynych-sideload.keystore -storepass gorynych-sideload | sha256sum | cut -d' ' -f1)
           ACTUAL=$("$APKSIGNER" verify --print-certs gorynych-dostupnost.apk | grep -m1 'SHA-256 digest' | awk '{print $NF}')
           echo "ожидается: $EXPECTED"
           echo "в APK:     $ACTUAL"
