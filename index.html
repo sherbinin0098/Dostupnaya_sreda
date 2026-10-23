@@ -108,6 +108,9 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
 .sbar{width:100%;height:14px;border-radius:6px;display:block;background:var(--line)}.srow{margin-top:10px}.lgs{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:14px}.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .tilt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}.tilt>div{display:flex;flex-direction:column;border:2px solid var(--line);border-radius:12px;padding:10px}.tilt b{font-size:34px;line-height:1.1}
 .heard{font-size:15px;margin:6px 0 0}
+
+html.big1 body,html.big1{font-size:20px}html.big1 button,html.big1 select,html.big1 input[type=text],html.big1 input[type=number],html.big1 input[type=search],html.big1 input[type=date]{min-height:64px}html.big1 button.small{min-height:56px}html.big1 nav button{min-height:80px;font-size:15px}html.big1 .tile{height:130px}
+html.big2 body,html.big2{font-size:23px}html.big2 button,html.big2 select,html.big2 input[type=text],html.big2 input[type=number],html.big2 input[type=search],html.big2 input[type=date]{min-height:80px}html.big2 button.small{min-height:68px}html.big2 nav button{min-height:94px;font-size:16px}html.big2 .tile{height:150px}html.big2 body{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
 </style>
 </head>
 <body>
@@ -628,8 +631,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 8.4",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "Не более 1 мм. Брусчатка и плитка с фаской на путях МГН не допускаются.",
+"status": "ok",
+"note": "Ширина шва и высота стыка элементов покрытия на путях МГН — не более 1 мм (п. 8.4 СП 140); скошенная (с фаской) брусчатка и плитка не допускаются. Для сравнения СП 59 п. 5.1.11 допускает швы до 10 мм. Подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru).",
 "cond": ""
 },
 {
@@ -643,8 +646,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 7.4",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "Средняя горизонтальная освещённость не менее 50 лк.",
+"status": "ok",
+"note": "Средняя горизонтальная освещённость не менее 50 лк. Значение подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru); с официальным оттиском Минстроя не сверялось.",
 "cond": ""
 },
 {
@@ -658,8 +661,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 4.8",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "Для кресел с электроприводом глубину увеличивают на 30 %.",
+"status": "ok",
+"note": "Глубина места на одно кресло-коляску не менее 1200 мм; для кресел с электроприводом глубину увеличивают на 30 % (п. 4.8). Значение подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru).",
 "cond": ""
 },
 {
@@ -673,8 +676,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 4.8",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "",
+"status": "ok",
+"note": "Значение подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru); с официальным оттиском Минстроя не сверялось.",
 "cond": ""
 },
 {
@@ -688,8 +691,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 4.8",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "Не более 2 %.",
+"status": "ok",
+"note": "Не более 2 %. Значение подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru); с официальным оттиском Минстроя не сверялось.",
 "cond": ""
 },
 {
@@ -703,8 +706,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 5.3.10",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "Не далее 200 м.",
+"status": "ok",
+"note": "Не далее 200 м. Значение подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru); с официальным оттиском Минстроя не сверялось.",
 "cond": ""
 },
 {
@@ -718,8 +721,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 4.1.3",
 "doc": "СП 140.13330.2024",
-"status": "chk",
-"note": "Не более 300 м.",
+"status": "ok",
+"note": "Не более 300 м. Значение подтверждено по тексту СП 140.13330.2024 (копия на tiflocentre.ru); с официальным оттиском Минстроя не сверялось.",
 "cond": ""
 },
 {
@@ -772,14 +775,14 @@ const RULES = [
 "group": "Лифт",
 "name": "Высота кнопок управления в кабине",
 "unit": "мм",
-"min": 850,
+"min": null,
 "max": 1200,
 "amin": null,
 "amax": null,
 "clause": "п. 5.4.2.1, табл. 4",
 "doc": "ГОСТ 33652-2019",
-"status": "chk",
-"note": "Верхняя кнопка в кабине не выше 1200 мм (предпочтительно 1100 мм) — подтверждено. Нижняя граница 850 мм для кабины не подтверждена (850 мм указано для этажных постов) — сверить табл. 4.",
+"status": "ok",
+"note": "Ось самой высокой кнопки в кабине не выше 1200 мм (предпочтительно 1100 мм). Нижняя граница для кабины в таблице 4 не задана (850 мм указано только для этажных постов вызова). Для кнопок крупного размера (прил. В.3) — не выше 1000 мм.",
 "cond": ""
 },
 {
@@ -916,6 +919,681 @@ const RULES = [
 "status": "ok",
 "note": "В местах высадки уклоны не более 20‰ (1:50), покрытие ровное нескользкое.",
 "cond": ""
+},
+{
+"id": "R80",
+"group": "Пути движения",
+"name": "Ширина шва между плитами или брусчаткой",
+"unit": "мм",
+"min": null,
+"max": 10,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.11",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Покрытие из бетонных плит или брусчатки — швы не более 0,01 м. Песок и гравий не допускаются. (В СП 140 п. 8.4 — не более 1 мм, см. раздел улицы.)",
+"cond": ""
+},
+{
+"id": "R81",
+"group": "Пути движения",
+"name": "Высота бордюра вдоль газонов",
+"unit": "мм",
+"min": 50,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.9",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Высота бортовых камней по краям пешеходных путей вдоль газонов не менее 0,05 м (допускается 0 при открытом лотке или тактильной полосе — см. п. 5.1.9).",
+"cond": ""
+},
+{
+"id": "R82",
+"group": "Пути движения",
+"name": "Перепад высот бордюра у газонов для рекреации",
+"unit": "мм",
+"min": null,
+"max": 15,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.9",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Перепад высот бортовых камней вдоль газонов и озеленённых площадок для рекреации — не более 0,015 м.",
+"cond": ""
+},
+{
+"id": "R83",
+"group": "Пути движения",
+"name": "Высота свободного пространства над прохожей частью",
+"unit": "мм",
+"min": 2100,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Высота свободного пространства над прохожей частью не менее 2,1 м.",
+"cond": ""
+},
+{
+"id": "R84",
+"group": "Пути движения",
+"name": "Выступ предметов на стене (лицевой край выше 300 мм от пути)",
+"unit": "мм",
+"min": null,
+"max": 100,
+"amin": null,
+"amax": null,
+"clause": "п. 5.3.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Объекты на стенах (почтовые ящики, щиты и т.п.) с лицевым краем на высоте от 0,3 м не выступают более чем на 0,1 м, на отдельной опоре — не более 0,3 м.",
+"cond": ""
+},
+{
+"id": "R85",
+"group": "Пути движения",
+"name": "Длина горизонтальной площадки перед пешеходным переходом",
+"unit": "мм",
+"min": 1500,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.4.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Перед переходом рекомендуется горизонтальная площадка шириной как переход и длиной не менее 1,5 м.",
+"cond": ""
+},
+{
+"id": "R86",
+"group": "Лестницы",
+"name": "Ширина марша внешней лестницы",
+"unit": "мм",
+"min": 1350,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.12",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Ширина лестничных маршей внешних лестниц не менее 1,35 м.",
+"cond": ""
+},
+{
+"id": "R87",
+"group": "Лестницы",
+"name": "Ширина проступи внешней лестницы",
+"unit": "мм",
+"min": 350,
+"max": 400,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.12",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "На перепадах рельефа ширина проступей от 0,35 до 0,4 м (или кратно). Все ступени одного марша одинаковы.",
+"cond": ""
+},
+{
+"id": "R88",
+"group": "Лестницы",
+"name": "Высота ступени внешней лестницы",
+"unit": "мм",
+"min": 120,
+"max": 150,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.12",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Высота ступеней от 0,12 до 0,15 м. Ступени без подступенков на путях МГН не применять.",
+"cond": ""
+},
+{
+"id": "R89",
+"group": "Лестницы",
+"name": "Число ступеней в марше внешней лестницы",
+"unit": "шт",
+"min": 3,
+"max": 12,
+"amin": null,
+"amax": 15,
+"clause": "п. 5.1.12",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "В марше 3–12 ступеней; в стеснённых условиях до 15 (примечание к п. 5.1.12).",
+"cond": "Стеснённые условия (примечание к п. 5.1.12, с учётом 5.1.7, 5.1.10 и 5.1.14)."
+},
+{
+"id": "R90",
+"group": "Лестницы",
+"name": "Высота поручня лестницы",
+"unit": "мм",
+"min": 870,
+"max": 930,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.13, 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Поручень на высоте 900 мм от верха проступи; допустимое отклонение ±30 мм (п. 6.2.8).",
+"cond": ""
+},
+{
+"id": "R91",
+"group": "Лестницы",
+"name": "Ширина проступи внутренней лестницы",
+"unit": "мм",
+"min": 280,
+"max": 350,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Проступи горизонтальные шириной 300 мм (допускается 280–350 мм).",
+"cond": ""
+},
+{
+"id": "R92",
+"group": "Лестницы",
+"name": "Высота ступени внутренней лестницы",
+"unit": "мм",
+"min": 130,
+"max": 170,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Высота ступеней 150 мм (допускается 130–170 мм). В марше ступени одинаковы.",
+"cond": ""
+},
+{
+"id": "R93",
+"group": "Лестницы",
+"name": "Радиус закругления ребра ступени",
+"unit": "мм",
+"min": null,
+"max": 20,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Ребро ступени закруглено радиусом не более 0,02 м.",
+"cond": ""
+},
+{
+"id": "R94",
+"group": "Лестницы",
+"name": "Высота бортика по боковому краю ступени",
+"unit": "мм",
+"min": 20,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Боковые края ступеней, не примыкающие к стенам, — бортики не менее 0,02 м.",
+"cond": ""
+},
+{
+"id": "R95",
+"group": "Лестницы",
+"name": "Ширина контрастной противоскользящей полосы на ступени",
+"unit": "мм",
+"min": 80,
+"max": 100,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "На краевых ступенях марша — полосы контрастного цвета общей шириной 0,08–0,1 м.",
+"cond": ""
+},
+{
+"id": "R96",
+"group": "Лестницы",
+"name": "Расстояние от края полосы до края проступи",
+"unit": "мм",
+"min": null,
+"max": 40,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Расстояние между краем контрастной полосы и краем проступи — не более 0,04 м.",
+"cond": ""
+},
+{
+"id": "R97",
+"group": "Двери",
+"name": "Нижний уровень контрастной маркировки на стекле",
+"unit": "мм",
+"min": 900,
+"max": 1000,
+"amin": null,
+"amax": null,
+"clause": "п. 6.1.6",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Яркая контрастная маркировка на прозрачных полотнах на двух уровнях: 0,9–1,0 м и 1,3–1,4 м; с обеих сторон полотна.",
+"cond": ""
+},
+{
+"id": "R98",
+"group": "Двери",
+"name": "Верхний уровень контрастной маркировки на стекле",
+"unit": "мм",
+"min": 1300,
+"max": 1400,
+"amin": null,
+"amax": null,
+"clause": "п. 6.1.6",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Второй уровень маркировки 1,3–1,4 м. Высота знака не менее 0,1 м, ширина не менее 0,2 м (или круг диаметром 0,1–0,2 м).",
+"cond": ""
+},
+{
+"id": "R99",
+"group": "Двери",
+"name": "Высота дверных ручек и приборов открывания",
+"unit": "мм",
+"min": 800,
+"max": 1100,
+"amin": null,
+"amax": null,
+"clause": "п. 6.4.3",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Приборы для открывания и закрывания дверей, горизонтальные поручни — на высоте 0,8–1,1 м.",
+"cond": ""
+},
+{
+"id": "R100",
+"group": "Внутри помещений",
+"name": "Ширина подхода к оборудованию и мебели",
+"unit": "мм",
+"min": 900,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Подходы к оборудованию и мебели не менее 0,9 м (1,2 м, если нужен поворот коляски на 90°).",
+"cond": ""
+},
+{
+"id": "R101",
+"group": "Внутри помещений",
+"name": "Ширина прохода в помещении с оборудованием и мебелью",
+"unit": "мм",
+"min": 1200,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Ширина прохода в помещении с оборудованием и мебелью не менее 1,2 м.",
+"cond": ""
+},
+{
+"id": "R102",
+"group": "Внутри помещений",
+"name": "Глубина манёвра перед дверью при открывании от себя",
+"unit": "мм",
+"min": 1200,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Перед дверью при открывании «от себя» — не менее 1,2 м.",
+"cond": ""
+},
+{
+"id": "R103",
+"group": "Внутри помещений",
+"name": "Глубина манёвра перед дверью при открывании к себе",
+"unit": "мм",
+"min": 1500,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Перед дверью при открывании «к себе» — не менее 1,5 м при ширине не менее 1,5 м.",
+"cond": ""
+},
+{
+"id": "R104",
+"group": "Внутри помещений",
+"name": "Высота розеток",
+"unit": "мм",
+"min": 400,
+"max": 800,
+"amin": null,
+"amax": null,
+"clause": "п. 6.4.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Электророзетки в помещениях на высоте от 0,4 до 0,8 м от пола.",
+"cond": ""
+},
+{
+"id": "R105",
+"group": "Внутри помещений",
+"name": "Зона досягаемости при боковом подходе (высота)",
+"unit": "мм",
+"min": 300,
+"max": 1400,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Расположение сбоку от посетителя — не выше 1,4 м и не ниже 0,3 м от пола.",
+"cond": ""
+},
+{
+"id": "R106",
+"group": "Внутри помещений",
+"name": "Зона досягаемости при фронтальном подходе (высота)",
+"unit": "мм",
+"min": 400,
+"max": 1200,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "При фронтальном подходе — не выше 1,2 м и не ниже 0,4 м от пола.",
+"cond": ""
+},
+{
+"id": "R107",
+"group": "Места обслуживания",
+"name": "Высота поверхности стола, прилавка, окна кассы",
+"unit": "мм",
+"min": 800,
+"max": 850,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Поверхность столов индивидуального пользования, прилавков, низа окон касс и справочных — не выше 0,80–0,85 м над полом.",
+"cond": ""
+},
+{
+"id": "R108",
+"group": "Места обслуживания",
+"name": "Ширина проёма для ног под столом или стойкой",
+"unit": "мм",
+"min": 750,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Ширина и высота проёма для ног не менее 0,75 м, глубина не менее 0,5 м.",
+"cond": ""
+},
+{
+"id": "R109",
+"group": "Места обслуживания",
+"name": "Высота проёма для ног под столом или стойкой",
+"unit": "мм",
+"min": 750,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Высота проёма для ног не менее 0,75 м.",
+"cond": ""
+},
+{
+"id": "R110",
+"group": "Места обслуживания",
+"name": "Глубина проёма для ног под столом или стойкой",
+"unit": "мм",
+"min": 500,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Глубина проёма для ног не менее 0,5 м.",
+"cond": ""
+},
+{
+"id": "R111",
+"group": "Места обслуживания",
+"name": "Ширина рабочего фронта прилавка, стола, стойки",
+"unit": "мм",
+"min": 1000,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Ширина рабочего фронта у места получения услуги не менее 1,0 м.",
+"cond": ""
+},
+{
+"id": "R112",
+"group": "Места обслуживания",
+"name": "Уклон площадки для зрителей на креслах-колясках",
+"unit": "‰",
+"min": null,
+"max": 15,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.6",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Площадка для зрителей на креслах-колясках горизонтальная, уклон не более 1,5 %.",
+"cond": ""
+},
+{
+"id": "R113",
+"group": "Места обслуживания",
+"name": "Ширина места для зрителя на коляске",
+"unit": "мм",
+"min": 900,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.6",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Место не менее 0,9 × 1,4 м и соседнее место для сопровождающего.",
+"cond": ""
+},
+{
+"id": "R114",
+"group": "Места обслуживания",
+"name": "Глубина места для зрителя на коляске",
+"unit": "мм",
+"min": 1400,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 8.1.6",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Место не менее 0,9 × 1,4 м и соседнее место для сопровождающего.",
+"cond": ""
+},
+{
+"id": "R115",
+"group": "Туалет (универсальная кабина)",
+"name": "Ширина прохода между рядами кабин, умывальников, писсуаров",
+"unit": "мм",
+"min": 1800,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.3.8",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Для кабин душевых, групповых и одиночных умывальников, уборных, писсуаров — не менее 1,8 м.",
+"cond": ""
+},
+{
+"id": "R116",
+"group": "Туалет (универсальная кабина)",
+"name": "Расстояние от универсальной кабины до основной зоны услуг",
+"unit": "м",
+"min": null,
+"max": 40,
+"amin": null,
+"amax": null,
+"clause": "п. 6.3.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Универсальные кабины — на расстоянии не более 40 м от основной зоны оказания услуг или рабочих мест инвалидов.",
+"cond": ""
+},
+{
+"id": "R117",
+"group": "Места отдыха",
+"name": "Интервал между местами отдыха на участке",
+"unit": "м",
+"min": null,
+"max": 150,
+"amin": null,
+"amax": null,
+"clause": "п. 5.3.1",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Места отдыха на основных путях не реже чем через 100–150 м.",
+"cond": ""
+},
+{
+"id": "R118",
+"group": "Места отдыха",
+"name": "Освещённость в местах отдыха",
+"unit": "лк",
+"min": 20,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.3.1",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Минимальный уровень освещённости в местах отдыха — 20 лк.",
+"cond": ""
+},
+{
+"id": "R119",
+"group": "Места отдыха",
+"name": "Интервал между зонами отдыха на этаже",
+"unit": "м",
+"min": null,
+"max": 30,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.5",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "На этаже, где ожидаются посетители, зоны отдыха на 2–3 места; при большой длине этажа через 25–30 м.",
+"cond": ""
+},
+{
+"id": "R120",
+"group": "Места отдыха",
+"name": "Высота сиденья скамьи",
+"unit": "мм",
+"min": 420,
+"max": 480,
+"amin": null,
+"amax": null,
+"clause": "п. 6.4.4",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Высота сиденья скамьи для МГН от площадки — 0,42–0,48 м.",
+"cond": ""
+},
+{
+"id": "R121",
+"group": "Места отдыха",
+"name": "Глубина сиденья скамьи",
+"unit": "мм",
+"min": 430,
+"max": 450,
+"amin": null,
+"amax": null,
+"clause": "п. 6.4.4",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Сиденье глубиной 0,43–0,45 м с наклоном к спинке не более 5°.",
+"cond": ""
+},
+{
+"id": "R122",
+"group": "Места отдыха",
+"name": "Высота подлокотника над сиденьем",
+"unit": "мм",
+"min": 200,
+"max": 230,
+"amin": null,
+"amax": null,
+"clause": "п. 6.4.4",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Верхняя поверхность подлокотника — на высоте 0,20–0,23 м от сиденья.",
+"cond": ""
+},
+{
+"id": "R123",
+"group": "Пандус",
+"name": "Ширина инвентарного пандуса",
+"unit": "мм",
+"min": 800,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.9",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Инвентарный пандус: ширина не менее 0,8 м, уклон не более 80‰, нагрузка не менее 250 кг/м².",
+"cond": ""
+},
+{
+"id": "R124",
+"group": "Пандус",
+"name": "Уклон инвентарного пандуса",
+"unit": "‰",
+"min": null,
+"max": 80,
+"amin": null,
+"amax": null,
+"clause": "п. 6.2.9",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Продольный уклон инвентарного пандуса не более 1:12 (80‰).",
+"cond": ""
 }
 ];
 const STATUS = {
@@ -965,7 +1643,8 @@ function migrateUnits(d){ if(!d || d.ver>=2) return d; const set = new Set(LEGAC
 function load(){ try{ const s = localStorage.getItem(KEY); if(s){ const raw = JSON.parse(s); const was = raw.ver; db = Object.assign(db, migrateUnits(raw)); if(!was) save(); } }catch(e){}
   db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; } });
   db.settings = Object.assign({stamp:true}, db.settings||{}); db.appeals = db.appeals||[]; }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert("Не удалось сохранить: память браузера недоступна."); } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert("Не удалось сохранить: память браузера недоступна."); }
+  clearTimeout(save._t); save._t = setTimeout(()=>{ if(typeof syncNotifs==="function") syncNotifs(); }, 1500); }
 
 /* Фото в IndexedDB */
 let idb = null;
@@ -1059,6 +1738,10 @@ const FIXES = {
   "Двери":["Установить доводчик с задержкой закрывания","Отрегулировать усилие доводчика","Перенести кнопку на высоту 850–1100 мм"],
   "Информация":["Установить тактильную табличку со стороны ручки"],
   "Туалет (универсальная кабина)":["Установить опорные поручни","Переоборудовать кабину под универсальную","Установить кнопку тревожной сигнализации"],
+  "Лестницы":["Установить поручни с двух сторон","Нанести контрастные противоскользящие полосы на края ступеней","Выровнять ступени по высоте и ширине"],
+  "Внутри помещений":["Освободить проход от мебели","Перенести розетки и устройства в зону досягаемости"],
+  "Места обслуживания":["Опустить часть стойки до 850 мм","Освободить проём для ног под столом"],
+  "Места отдыха":["Установить скамью с опорой для спины и подлокотниками","Улучшить освещение"],
   "Лифт":["Перенести кнопки на доступную высоту","Отрегулировать точность остановки","Установить подъёмную платформу"],
   "Улица":["Выровнять покрытие, заделать швы","Установить освещение","Обустроить место отдыха"]
 };
@@ -1079,7 +1762,7 @@ function renderNav(){
 }
 function render(){
   document.getElementById("normsub").textContent = "Нормы: "+NORMS_VERSION;
-  renderNav(); tiltStop();
+  applyBig(); renderNav(); tiltStop();
   ({measure:renderMeasure, log:renderLog, appeals:renderAppeals, tools:renderTools, more:renderMore, export:renderExport, stats:renderStats, norms:renderNorms})[tab]();
 }
 
@@ -1091,7 +1774,7 @@ function renderMeasure(){
     <div class="row" style="margin-top:10px"><button id="newobj" class="small">Новый объект</button>${o?`<button id="editobj" class="small">Изменить</button>`:""}</div>
     ${o?`<p class="muted">${esc(o.address||"")}<br>${esc(BST[o.bstatus]||"")}${rnd(o)>1?" · обследование №"+rnd(o):""}</p>`:""}
     ${o&&db.records.some(r=>r.objId===o.id&&(r.round||1)===rnd(o))?`<button id="newround" class="small" type="button">Повторное обследование</button>`:""}</div>`;
-  h = dueBanner() + h;
+  h = dueBanner() + backupBanner() + h;
   if(!o){ h += `<div class="card">Сначала добавьте объект: название, адрес и пометка, существующее ли здание.</div>`; app.innerHTML=h; bindObj(); return; }
   const gs = groups();
   h += routeCardHTML(o);
@@ -1121,6 +1804,7 @@ function renderMeasure(){
   app.innerHTML = h; bindObj(); bindRoute(o);
   const nr = byId("newround"); if(nr) nr.onclick = ()=>startRound(o);
   const dg = byId("duego"); if(dg) dg.onclick = ()=>{ tab = "appeals"; render(); };
+  const bg = byId("bkgo"); if(bg) bg.onclick = ()=>{ tab = "export"; render(); window.scrollTo(0,0); };
   document.getElementById("grp").onchange = e=>{ draft.group = e.target.value; draft.ruleId=""; draft.value=""; draft.cond=null; renderMeasure(); };
   document.getElementById("rul").onchange = e=>{ draft.ruleId = e.target.value; draft.value=""; draft.cond=null; renderMeasure(); };
   if(cur){
@@ -1130,7 +1814,8 @@ function renderMeasure(){
       const k0 = check(cur,v,o);
       let html = resultBox(k0,cur,v,o,draft.cond);
       if(k0==="relax") html += `<p class="muted" style="margin-bottom:4px">Проверьте условие на месте и отметьте:</p><div class="row"><button type="button" class="${draft.cond===true?"primary":""}" data-c="1">Условие выполнено</button><button type="button" class="${draft.cond===false?"primary":""}" data-c="0">Условие не выполнено</button></div>`;
-      live.innerHTML = html;
+      html += plausHTML(cur, v); live.innerHTML = html;
+      live.querySelectorAll("[data-fixv]").forEach(b=>b.onclick=()=>{ val.value = String(b.dataset.fixv).replace(".",","); val.dispatchEvent(new Event("input",{bubbles:true})); });
       live.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ draft.cond = b.dataset.c==="1"; upd(); }); };
     val.oninput = upd; upd();
     const mic = byId("mic"); if(mic) mic.onclick = ()=>dictate(cur.unit, val, t=>{ byId("heard").textContent = t; }, cur);
@@ -1147,6 +1832,8 @@ function renderMeasure(){
     bindChips(byId("fixchips"), fx, t=>{ draft.fix = t; });
     byId("saveM").onclick = ()=>{
       const v = num(val.value); if(v==null){ alert("Введите число."); val.focus(); return; }
+      if(!plausible(cur,v) && !confirm("Значение "+fmt(v)+" "+cur.unit+" выглядит необычно (норма: "+normText(cur)+"). Сохранить как есть?")) return;
+      if(db.settings.confirmSave && !confirm("Сохранить замер: "+fmt(v)+" "+cur.unit+"?")) return;
       const k = check(cur,v,o), slots = Object.assign({}, draft.slots);
       db.records.unshift({ id:uid(), objId:o.id, round:rnd(o), ruleId:cur.id, value:v, result:k, ts:Date.now(), comment:draft.comment.trim(), exp:draft.exp.trim(), fix:draft.fix.trim(),
         geo:draft.geo, place:draft.place, slots, photos:Object.values(slots).filter(Boolean), cond:(k==='relax'?draft.cond:null) });
@@ -1264,13 +1951,14 @@ async function showPhoto(id, ctx){
   const ov = document.createElement("div"); ov.className = "overlay"; ov.setAttribute("role","dialog");
   ov.innerHTML = `${ctx?`<div class="vcap">${esc(SLOTN[ctx.slot]||"Фото")}</div>`:""}<img src="${u}" alt="Фото">
    ${ctx?`<div class="row" style="width:100%;max-width:520px"><label class="btnlike"><input type="file" accept="image/*" capture="environment" class="vh" data-vrep="1">Переснять</label><label class="btnlike"><input type="file" accept="image/*" class="vh" data-vrep="1">Из галереи</label></div>`:""}
-   <div class="row" style="width:100%;max-width:520px"><button id="psh" class="primary">Поделиться</button>${ctx?`<button id="prm" class="danger">Убрать</button>`:""}<button id="pcl">Закрыть</button></div>`;
+   <div class="row" style="width:100%;max-width:520px"><button id="psh" class="primary">Поделиться</button>${ctx?`<button id="pann">Пометить</button><button id="prm" class="danger">Убрать</button>`:""}<button id="pcl">Закрыть</button></div>`;
   document.body.appendChild(ov);
   const close = ()=>{ URL.revokeObjectURL(u); ov.remove(); };
   ov.querySelector("#pcl").onclick = close;
   ov.querySelector("#psh").onclick = async ()=>{ const f = new File([b],"foto.jpg",{type:"image/jpeg"});
     try{ if(isNative){ await nativeShareBlob("foto.jpg", b); return; } if(navigator.canShare && navigator.canShare({files:[f]})) await navigator.share({files:[f]}); else { const a=document.createElement("a"); a.href=u; a.download="foto.jpg"; a.click(); } }catch(e){} };
   if(ctx){ ov.querySelectorAll("[data-vrep]").forEach(inp=>inp.onchange = e=>{ const f = e.target.files && e.target.files[0]; if(!f) return; close(); setSlotPhoto(ctx.scope, ctx.slot, f); });
+    ov.querySelector("#pann").onclick = ()=>{ close(); annotatePhoto(id, ctx); };
     ov.querySelector("#prm").onclick = ()=>{ if(!confirm("Убрать это фото?")) return; close(); removeSlotPhoto(ctx.scope, ctx.slot); }; }
 }
 
@@ -1319,10 +2007,12 @@ function renderExport(){
    <div class="row" style="margin-top:10px"><button id="epass2" class="primary">Паспорт доступности ОСИ (по форме приказа № 627)</button></div>
    <div class="row" style="margin-top:10px"><button id="epass">Справка о результатах обследования</button><button id="epub">Данные для публичной карты</button></div>
    <div class="row" style="margin-top:10px"><button id="ecmp">До и после: отчёт</button><button id="ecmpt">До и после: текст</button></div>
+   <div class="row" style="margin-top:10px"><button id="eletter">Письмо-обращение (шаблон)</button></div>
+   <div class="row" style="margin-top:10px"><button id="eact">Акт обследования (форма А.4)</button><button id="eank">Анкета (форма А.3)</button></div>
    <div class="row" style="margin-top:10px"><button id="etxt">Текст для акта</button><button id="ebad">Текст для обращения (только нарушения)</button></div>
    <pre id="eprev" class="hidden"></pre><div class="row hidden" id="ebtns"><button id="ecopy" class="small">Копировать</button><button id="eshare" class="small">Поделиться текстом</button><button id="efile" class="small">Файлом</button></div></div>
    <div class="card"><h3 style="margin-top:0">Резервная копия</h3><p class="muted">Все данные хранятся только в этом телефоне. Копия — один файл со всеми объектами, замерами и фото. Сохраните её в облако или отправьте себе: с ней всё переносится на новый телефон.</p>
-   <div class="row"><button id="ebk" class="small">Сохранить копию</button><button id="eim" class="small">Загрузить копию</button></div><input type="file" id="eimf" accept=".json" class="hidden"></div>`;
+   <div class="row"><button id="ebk" class="small">Сохранить копию</button><button id="eim" class="small">Загрузить копию</button></div><div class="row" style="margin-top:8px"><button id="emerge" class="small">Добавить из файла коллеги</button></div><input type="file" id="eimf" accept=".json" class="hidden"><input type="file" id="emergef" accept=".json" class="hidden"></div>`;
   bindBack();
   const sel = ()=>document.getElementById("eo").value;
   document.getElementById("ecsv").onclick = ()=>shareOrDownload("zamery_"+new Date().toISOString().slice(0,10)+".csv", buildCSV(sel()), "text/csv");
@@ -1340,12 +2030,16 @@ function renderExport(){
   byId("epass").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю справку…"); await shareOrDownload("spravka_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildPassport(o.id), "text/html"); };
   byId("epass2").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю паспорт…"); await shareOrDownload("pasport_dostupnosti_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildOfficialPassport(o.id), "text/html"); };
   byId("epub").onclick = exportPublic;
+  byId("eletter").onclick = ()=>{ const o = need(); if(!o) return; const p = byId("eprev"); p.textContent = buildLetter(o.id); p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); p.scrollIntoView({block:"center"}); };
+  const doc = (kind,pref)=>async()=>{ const o = need(); if(!o) return; toast("Готовлю документ…"); await shareOrDownload(pref+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildOfficialPassport(o.id, kind), "text/html"); };
+  byId("eact").onclick = doc("act","akt_obsledovaniya_"); byId("eank").onclick = doc("anketa","anketa_");
   byId("efile").onclick = ()=>{ const t = byId("eprev").textContent; if(!t) return; const nm = pubLast && pubLast.text===t ? pubLast.name : "tekst_"+new Date().toISOString().slice(0,10)+".txt"; shareOrDownload(nm, t, /^\{/.test(t)?"application/json":"text/plain"); };
   byId("ecmp").onclick = async ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования. Нажмите «Повторное обследование» на вкладке «Замер»."); return; } toast("Готовлю отчёт…"); await shareOrDownload("do_i_posle_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await cmpReport(o), "text/html"); };
   byId("ecmpt").onclick = ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования."); return; } const p = byId("eprev"); p.textContent = cmpText(o); p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); };
-  document.getElementById("ebk").onclick = async ()=>{ toast("Собираю копию…"); const bk = await buildBackup();
+  document.getElementById("ebk").onclick = async ()=>{ toast("Собираю копию…"); const bk = await buildBackup(); db.settings.lastBackup = Date.now(); save();
     await shareOrDownload("gorynych_backup_"+new Date().toISOString().slice(0,10)+".json", bk.text, "application/json"); };
   document.getElementById("eim").onclick = ()=>document.getElementById("eimf").click();
+  byId("emerge").onclick = ()=>byId("emergef").click(); byId("emergef").onchange = e=>{ const f = e.target.files[0]; e.target.value = ""; if(f) mergeBackup(f); };
   document.getElementById("eimf").onchange = e=>{ const f = e.target.files[0]; if(!f) return; const rd = new FileReader();
     rd.onload = async ()=>{ let d, nd; try{ d = JSON.parse(rd.result); nd = d && d.v===2 ? d.db : d; if(!nd||!Array.isArray(nd.objects)||!Array.isArray(nd.records)) throw 0; }catch(x){ alert("Файл не похож на копию."); return; }
       if(!confirm("Заменить текущие данные копией?")) return;
@@ -1657,8 +2351,8 @@ async function buildBackup(){ const photos = {}, ids = new Set(); db.records.for
 /* ==== ТИПЫ ОБЪЕКТОВ И МАРШРУТ ОБСЛЕДОВАНИЯ ==== */
 const OTYPES = { bld:"Здание (поликлиника, школа, магазин, офис…)", street:"Улица, тротуары, переходы", other:"Всё подряд (все разделы)" };
 const ROUTES = {
-  bld:["Парковка для МГН","Пути движения","Пандус","Бордюрный съезд","Входная группа","Тамбур","Двери","Информация","Коридор","Лифт","Туалет (универсальная кабина)"],
-  street:["Парковка для МГН","Пути движения","Бордюрный съезд","Пандус","Улица / покрытие","Улица / переходы","Улица / зона отдыха","Улица / маршрут"],
+  bld:["Парковка для МГН","Пути движения","Места отдыха","Пандус","Лестницы","Бордюрный съезд","Входная группа","Тамбур","Двери","Информация","Коридор","Внутри помещений","Лифт","Места обслуживания","Туалет (универсальная кабина)"],
+  street:["Парковка для МГН","Пути движения","Места отдыха","Бордюрный съезд","Пандус","Лестницы","Улица / покрытие","Улица / переходы","Улица / зона отдыха","Улица / маршрут"],
   other:null };
 const rnd = o => (o && o.round) || 1;
 const skipKey = (o,id) => rnd(o)+":"+id;
@@ -1973,9 +2667,13 @@ function renderMore(){
   const ver = (byId("appver")||{}).textContent || "";
   app.innerHTML = `<div class="card"><h2 style="margin-top:0">Ещё</h2><div class="menu">
     <button type="button" data-go="export">Экспорт и отчёты</button><button type="button" data-go="stats">Сводка</button><button type="button" data-go="norms">Нормы (справка)</button></div></div>
+    <div class="card"><label for="abig">Размер кнопок и текста</label><select id="abig"><option value="0">Обычный</option><option value="1">Крупный</option><option value="2">Очень крупный</option></select>
+    <label class="chk"><input type="checkbox" id="acs"> Спрашивать подтверждение перед сохранением замера</label></div>
     <div class="card"><label for="aname">Ваше имя в отчётах</label><input id="aname" type="text" autocomplete="off" value="${esc(db.settings.author||"")}" placeholder="Например: Витя"><p class="muted">${esc(ver)}</p></div>`;
   app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ tab = b.dataset.go; render(); window.scrollTo(0,0); });
   byId("aname").oninput = e=>{ db.settings.author = e.target.value.trim(); save(); };
+  byId("abig").value = String(db.settings.big||0); byId("abig").onchange = e=>{ db.settings.big = +e.target.value; save(); applyBig(); };
+  byId("acs").checked = !!db.settings.confirmSave; byId("acs").onchange = e=>{ db.settings.confirmSave = e.target.checked; save(); };
 }
 
 /* ==== СПРАВКА ОБ ОБЪЕКТЕ (основа паспорта доступности) ==== */
@@ -2046,10 +2744,10 @@ async function exportPublic(){
 
 /* ==== ПАСПОРТ ДОСТУПНОСТИ ОСИ по форме приложения А.2 к приказу Минтруда России от 25.12.2012 № 627 ==== */
 const PZONES = [
-  ["Территория, прилегающая к зданию (участок)", ["Парковка для МГН","Пути движения"]],
+  ["Территория, прилегающая к зданию (участок)", ["Парковка для МГН","Пути движения","Места отдыха"]],
   ["Вход (входы) в здание", ["Входная группа","Тамбур","Двери","Пандус"]],
-  ["Путь (пути) движения внутри здания (в т.ч. пути эвакуации)", ["Коридор","Лифт"]],
-  ["Зона целевого назначения здания (целевого посещения объекта)", []],
+  ["Путь (пути) движения внутри здания (в т.ч. пути эвакуации)", ["Коридор","Лифт","Лестницы","Внутри помещений"]],
+  ["Зона целевого назначения здания (целевого посещения объекта)", ["Места обслуживания"]],
   ["Санитарно-гигиенические помещения", ["Туалет (универсальная кабина)"]],
   ["Система информации и связи (на всех зонах)", ["Информация"]],
   ["Пути движения к объекту (от остановки транспорта)", ["Бордюрный съезд","Улица / покрытие","Улица / переходы","Улица / зона отдыха","Улица / маршрут"]]
@@ -2063,7 +2761,8 @@ function zoneCode(o, groupsList, rows){
   let code; if(!bad && !soft && cover>=0.9) code = "ДП-И (К)"; else if(!bad || good) code = "ДЧ-И (К)"; else code = "ВНД (К)";
   return {code, n:mine.length, c, cover};
 }
-async function buildOfficialPassport(objId){
+async function buildOfficialPassport(objId, kind){
+  kind = kind||"passport"; const TT = kind==="act" ? ["АКТ ОБСЛЕДОВАНИЯ","объекта социальной инфраструктуры<br>К ПАСПОРТУ ДОСТУПНОСТИ ОСИ"] : kind==="anketa" ? ["АНКЕТА (информация об объекте)","К ПАСПОРТУ ДОСТУПНОСТИ ОСИ"] : ["ПАСПОРТ ДОСТУПНОСТИ","объекта социальной инфраструктуры (ОСИ)"];
   const o = db.objects.find(x=>x.id===objId); if(!o) return "";
   const rows = exportRows(objId).slice().reverse(), dt = t=>new Date(t).toLocaleDateString("ru-RU");
   const f = (v,w)=>`<span class="fill" contenteditable="true" style="min-width:${w||160}px">${v?esc(v):""}</span>`;
@@ -2098,14 +2797,14 @@ async function buildOfficialPassport(objId){
 .cover{min-height:90vh;text-align:center;display:flex;flex-direction:column;justify-content:space-between;padding:30px 0}.cover h1{font-size:26px;margin:40px 0 10px}.cover .big{font-size:20px;font-weight:700}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}.gal figure{break-inside:avoid}.gal img{width:100%;border-radius:6px}
 @media print{.hint,.noprint{display:none}.fill,.fc{background:none!important;outline:none!important}.pb{break-before:page}}.pb{margin-top:30px}`;
-  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Паспорт доступности ОСИ — ${esc(o.name)}</title><style>${css}</style></head><body>
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${TT[0]} — ${esc(o.name)}</title><style>${css}</style></head><body>
 <div class="hint">Паспорт доступности объекта социальной инфраструктуры по структуре приложений А.2 и А.4 к приказу Минтруда России от 25.12.2012 № 627, с титульным листом, обозначениями, приложениями и нумерацией фото, как в образцах паспортов. Серые поля можно править прямо на этой странице перед печатью или сохранением в PDF. Коды состояния доступности (ДП-И, ДЧ-И, ВНД) предварительные, по замерам для инвалидов на колясках (К): окончательно их определяет комиссия.</div>
-<div class="cover"><div><p>Российская Федерация</p><p>${f("Новосибирская область",260)}</p></div>
+${kind!=="passport"?"":`<div class="cover"><div><p>Российская Федерация</p><p>${f("Новосибирская область",260)}</p></div>
 <div><h1>ПАСПОРТ ДОСТУПНОСТИ<br>объекта социальной инфраструктуры (ОСИ)</h1><p>Отчёт о проведённом обследовании объекта:</p><p class="big">${f(o.name,380)}</p><p>Адрес: ${f(o.address||"",380)}</p></div>
 <div><p>г. Новосибирск</p><p>${new Date().getFullYear()} год</p><p class="sm">Мастерская Горыныча: Экспертиза на колёсах</p></div></div>
-<div class="pb"><h2 style="text-align:center">ОБОЗНАЧЕНИЯ И СОКРАЩЕНИЯ</h2>${abbr}</div>
-<div class="pb"><div class="ut">УТВЕРЖДАЮ<br>Руководитель ОСЗН ${f("",200)}<br>«__» ____________ 20__ г.</div>
-<h1 style="text-align:center">ПАСПОРТ ДОСТУПНОСТИ<br>объекта социальной инфраструктуры (ОСИ)</h1><p style="text-align:center">№ ${f("",140)}</p>
+<div class="pb"><h2 style="text-align:center">ОБОЗНАЧЕНИЯ И СОКРАЩЕНИЯ</h2>${abbr}</div>`}
+<div class="${kind==="passport"?"pb":""}"><div class="ut">УТВЕРЖДАЮ<br>${kind==="anketa"?"Руководитель организации":"Руководитель ОСЗН"} ${f("",200)}<br>«__» ____________ 20__ г.</div>
+<h1 style="text-align:center">${TT[0]}<br>${TT[1]}</h1><p style="text-align:center">№ ${f("",140)}${kind==="act"?` &nbsp; г. ${f("Новосибирск",140)} «__» ____________ 20__ г.`:""}</p>
 <h2>1. Общие сведения об объекте</h2>
 <p>1.1. Наименование (вид) объекта: ${f(o.name+" ("+OTYPES[o.type||"other"].split(" (")[0].toLowerCase()+")",300)}</p>
 <p>1.2. Адрес объекта: ${f(o.address||"",300)}${o.geo?` <a href="${mapLink(o.geo)}">${geoTxt(o.geo)}</a>`:""}</p>
@@ -2150,12 +2849,106 @@ async function buildOfficialPassport(objId){
 <p><b>ПРИЛОЖЕНИЯ:</b><br>Результаты обследования:<br>${PZONES.map((z,i)=>sheets(i+1,z[0].replace(/\s*\(.*\)/,""))).join("<br>")}<br>Результаты фотофиксации на объекте: ${photos.length} фото на ${f("",36)} л.<br>Поэтажные планы, паспорт БТИ ${f("",160)} на ${f("",36)} л.<br>Другое (в том числе дополнительная информация о путях движения к объекту): ${f("",260)}</p>
 <p>Паспорт сформирован на основании: 1. Анкеты (информации об объекте) от «__» ___________ 20__ г.; 2. Акта обследования объекта: № акта ${f("",100)} от «__» ___________ 20__ г.; 3. Решения Комиссии ${f("",200)} от «__» ___________ 20__ г.</p>
 <p>Обследование выполнено: ${f(db.settings.author||"",200)}, ${dt(Date.now())}. Нормы: ${esc(NORMS_VERSION)}.</p></div>
-<div class="pb"><h2>Приложение 1. Результаты обследования по зонам</h2><p class="sm">Все замеры текущего обследования (№${rnd(o)}). Зоны соответствуют разделу 3.4 паспорта.</p>${app1}</div>
+${kind==="anketa"?"":`<div class="pb"><h2>Приложение 1. Результаты обследования по зонам</h2><p class="sm">Все замеры текущего обследования (№${rnd(o)}). Зоны соответствуют разделу 3.4 паспорта.</p>${app1}</div>
 <div class="pb"><h2>Приложение 2. Результаты фотофиксации</h2>${photos.length?`<div class="gal">`+photos.map(p=>`<figure><img src="${p.d}" alt="Фото ${p.n}"><figcaption><b>Фото № ${p.n}.</b> ${esc(p.name)} — ${esc(p.cap)}. ${esc(p.res)}. Зона: ${esc(p.zone.replace(/\s*\(.*\)/,""))}</figcaption></figure>`).join("")+`</div>`:"<p>Фото не приложены.</p>"}</div>
-<p class="muted">Результат — рабочая подсказка, а не юридическое заключение. Значения норм со статусом «требует сверки» нужно проверить по полному тексту.</p></body></html>`;
+`}<p class="muted">Результат — рабочая подсказка, а не юридическое заключение. Значения норм со статусом «требует сверки» нужно проверить по полному тексту.</p></body></html>`;
 }
 
+/* ==== ЗАЩИТА ОТ ОПЕЧАТОК ПРИ ВВОДЕ ==== */
+function ruleBand(r){ const v = [r.min,r.max,r.amin,r.amax].filter(x=>x!=null&&x>0); if(!v.length || r.unit==="шт") return null;
+  const lo = Math.min(...v), hi = Math.max(...v); return {lo:lo/8, hi:hi*8, c:Math.sqrt(lo*hi)}; }
+function plausible(r,v){ const b = ruleBand(r); if(!b) return true; if(v<0) return false; if(v===0) return true; return v>=b.lo && v<=b.hi; }
+function plausFix(r,v){ const b = ruleBand(r); if(!b||!(v>0)) return null;
+  const cs = [v*10,v/10,v*100,v/100,v*1000,v/1000].filter(x=>x>=b.lo&&x<=b.hi); if(!cs.length) return null;
+  cs.sort((a,c)=>Math.abs(Math.log(a/b.c))-Math.abs(Math.log(c/b.c))); return Math.round(cs[0]*100)/100; }
+function plausHTML(r,v){ if(plausible(r,v)) return ""; const fx = plausFix(r,v);
+  return `<div class="warn" role="alert"><b>Похоже на опечатку.</b> ${fmt(v)} ${esc(r.unit)} для этого параметра необычно (норма: ${esc(normText(r))}).${fx!=null?` <button type="button" class="small" data-fixv="${fx}" style="margin-top:6px">Исправить на ${fmt(fx)} ${esc(r.unit)}</button>`:""}</div>`; }
+
+/* ==== КРУПНЫЙ РЕЖИМ ==== */
+function applyBig(){ const k = (db.settings && db.settings.big) || 0; document.documentElement.classList.remove("big1","big2"); if(k) document.documentElement.classList.add("big"+k); }
+
+/* ==== РЕЗЕРВНАЯ КОПИЯ: НАПОМИНАНИЕ И ОБЪЕДИНЕНИЕ С ФАЙЛОМ КОЛЛЕГИ ==== */
+function backupBanner(){
+  if(!db.records.length) return ""; const last = db.settings.lastBackup, d = last ? Math.floor((Date.now()-last)/DAY) : null;
+  if(d!=null && d<14) return "";
+  return `<div class="card warn" id="bkbn"><b>Резервная копия</b><div>${d==null?"Копия ещё ни разу не сохранялась.":"Последняя копия сделана "+d+" дн. назад."} Данные хранятся только на этом телефоне.</div><button type="button" class="small" id="bkgo" style="margin-top:6px">Сделать копию</button></div>`; }
+async function mergeBackup(file){
+  let d; try{ d = JSON.parse(await file.text()); }catch(e){ alert("Файл не похож на копию."); return; }
+  let nd = d && d.v===2 ? d.db : d; if(!nd || !Array.isArray(nd.objects) || !Array.isArray(nd.records)){ alert("Файл не похож на копию."); return; }
+  nd = migrateUnits(nd); const ho = new Set(db.objects.map(x=>x.id)), hr = new Set(db.records.map(x=>x.id)), ha = new Set((db.appeals||[]).map(x=>x.id));
+  const no = nd.objects.filter(x=>!ho.has(x.id)), nr = nd.records.filter(x=>!hr.has(x.id)), na = (nd.appeals||[]).filter(x=>!ha.has(x.id));
+  if(!no.length && !nr.length && !na.length){ alert("В этом файле нет ничего нового: всё уже есть на этом телефоне."); return; }
+  if(!confirm("Добавить из файла: объектов — "+no.length+", замеров — "+nr.length+", обращений — "+na.length+"? Ваши данные не изменятся.")) return;
+  db.objects.push(...no); db.records.push(...nr); db.appeals = [...(db.appeals||[]), ...na];
+  let n = 0; if(d.v===2 && d.photos) for(const r of nr) for(const id of (r.photos||[])){ const u = d.photos[id]; if(u){ try{ if(await putPhoto(id, dataURLtoBlob(u))) n++; }catch(e){} } }
+  save(); toast("Добавлено: объектов "+no.length+", замеров "+nr.length+(n?", фото "+n:"")); render(); }
+
+/* ==== ПИСЬМО-ОБРАЩЕНИЕ ==== */
+function buildLetter(objId){
+  const o = db.objects.find(x=>x.id===objId); if(!o) return "";
+  const rows = exportRows(objId).filter(({v})=>["bad","bad2","old","relax"].includes(v.k)), dt = new Date().toLocaleDateString("ru-RU");
+  let t = `Кому: [наименование органа или организации]\nОт кого: [ФИО, организация, контакты]\nДата: ${dt}\n\nОБРАЩЕНИЕ\nоб устранении нарушений требований доступности объекта\n\n`;
+  t += `Объект: ${o.name}${o.address?", "+o.address:""}${o.geo?" ("+mapLink(o.geo)+")":""}.\n`;
+  t += `Обследование №${rnd(o)} выполнено людьми с инвалидностью по методу «тройственный взгляд»: опыт эксперта на коляске, требования норм и реальные возможности по устранению. Нормы: ${NORMS_VERSION}.\n\n`;
+  t += `В ходе обследования выявлены несоответствия требованиям доступности для маломобильных групп населения (ст. 15 Федерального закона от 24.11.1995 № 181-ФЗ «О социальной защите инвалидов в Российской Федерации»; СП 59.13330.2020):\n`;
+  if(!rows.length) t += `— несоответствий не выявлено.\n`;
+  rows.forEach(({r,v},i)=>{ const ru = v.ru; t += `${i+1}. ${ru.name}: фактически ${fmt(r.value)} ${ru.unit}, требуется ${normText(ru)} (${ru.clause}, ${ru.doc}).${r.exp?" Что это значит на коляске: "+r.exp+".":""}${r.fix?" Предлагаемое решение: "+r.fix+".":""}\n`; });
+  if(o.bstatus==="old") t += `\nЗдание введено до 01.07.2016 и не реконструировалось, поэтому просим принять меры по приспособлению объекта (разумное приспособление) и рассмотреть возможность поэтапного устранения.\n`;
+  t += `\nПросим:\n1) рассмотреть обращение и принять меры по устранению выявленных нарушений;\n2) сообщить в письменном виде, какие меры и в какие сроки будут приняты;\n3) при невозможности технических решений — организовать альтернативную форму обслуживания.\n\nПриложения: отчёт с фото; паспорт доступности объекта (проект).\n\n[Подпись] [ФИО] ${dt}\n\nЗначения норм должны быть сверены с действующей редакцией свода правил.\n`;
+  return t; }
+
+/* ==== ПОМЕТКИ НА ФОТО: стрелка, круг, подпись ==== */
+async function replaceSlotBlob(scope, slot, blob){
+  const nid = uid(); if(!await putPhoto(nid, blob)){ alert("Фото не сохранилось: память недоступна."); return false; }
+  const s = scopeSlots(scope), old = s[slot]; s[slot] = nid; const r = scopeRec(scope); if(r){ syncPhotos(r); save(); }
+  if(old) forgetPhoto(old); refreshTiles(scope); return true; }
+async function annotatePhoto(id, ctx){
+  const b = await getPhoto(id); if(!b) return; const u = URL.createObjectURL(b); const img = await loadImage(u).catch(()=>null);
+  if(!img){ URL.revokeObjectURL(u); return; }
+  const ov = document.createElement("div"); ov.className = "overlay"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-label","Пометки на фото"); ov.style.cssText = "justify-content:flex-start;overflow:auto";
+  ov.innerHTML = `<canvas id="acv" style="max-width:100%;max-height:58vh;touch-action:none;border-radius:8px;background:#000"></canvas>
+   <div class="row" style="width:100%;max-width:520px"><button type="button" class="atool primary" data-t="arrow">Стрелка</button><button type="button" class="atool" data-t="circle">Круг</button><button type="button" class="atool" data-t="text">Текст</button></div>
+   <div class="row" style="width:100%;max-width:520px"><button type="button" id="aundo">Отменить</button><button type="button" id="aclr">Очистить</button></div>
+   <div class="row" style="width:100%;max-width:520px"><button type="button" class="primary" id="aok">Готово</button><button type="button" id="acn2">Отмена</button></div>`;
+  document.body.appendChild(ov);
+  const cv = ov.querySelector("#acv"), w = img.naturalWidth, h = img.naturalHeight; cv.width = w; cv.height = h; const g = cv.getContext("2d");
+  const lw = Math.max(4, Math.round(w/180)), col = "#ff2d2d"; let tool = "arrow", marks = [], cur = null;
+  const draw = ()=>{ g.drawImage(img,0,0,w,h); g.lineWidth = lw; g.lineCap = "round"; [...marks, ...(cur?[cur]:[])].forEach(m=>{ g.strokeStyle = col; g.fillStyle = col; g.lineWidth = lw;
+    if(m.t==="circle"){ g.beginPath(); g.arc(m.x1, m.y1, Math.hypot(m.x2-m.x1, m.y2-m.y1), 0, Math.PI*2); g.stroke(); }
+    else if(m.t==="arrow"){ const a = Math.atan2(m.y2-m.y1, m.x2-m.x1), hl = lw*5; g.beginPath(); g.moveTo(m.x1,m.y1); g.lineTo(m.x2,m.y2); g.stroke();
+      g.beginPath(); g.moveTo(m.x2,m.y2); g.lineTo(m.x2-hl*Math.cos(a-0.45), m.y2-hl*Math.sin(a-0.45)); g.lineTo(m.x2-hl*Math.cos(a+0.45), m.y2-hl*Math.sin(a+0.45)); g.closePath(); g.fill(); }
+    else if(m.t==="text"){ const fs = Math.max(24, Math.round(w/22)); g.font = "700 "+fs+"px system-ui,sans-serif"; g.lineWidth = Math.max(3, fs/8); g.strokeStyle = "#fff"; g.strokeText(m.s, m.x1, m.y1); g.fillStyle = col; g.fillText(m.s, m.x1, m.y1); } }); };
+  const pos = e=>{ const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*w/r.width, y:(e.clientY-r.top)*h/r.height}; };
+  cv.onpointerdown = e=>{ const p = pos(e); if(tool==="text"){ const s = prompt("Подпись на фото:"); if(s){ marks.push({t:"text", x1:p.x, y1:p.y, s}); draw(); } return; }
+    cv.setPointerCapture(e.pointerId); cur = {t:tool, x1:p.x, y1:p.y, x2:p.x, y2:p.y}; draw(); };
+  cv.onpointermove = e=>{ if(!cur) return; const p = pos(e); cur.x2 = p.x; cur.y2 = p.y; draw(); };
+  cv.onpointerup = ()=>{ if(!cur) return; if(Math.hypot(cur.x2-cur.x1, cur.y2-cur.y1) > lw*2) marks.push(cur); cur = null; draw(); };
+  ov.querySelectorAll(".atool").forEach(bn=>bn.onclick=()=>{ tool = bn.dataset.t; ov.querySelectorAll(".atool").forEach(x=>x.classList.toggle("primary", x===bn)); });
+  ov.querySelector("#aundo").onclick = ()=>{ marks.pop(); draw(); }; ov.querySelector("#aclr").onclick = ()=>{ marks = []; draw(); };
+  const close = ()=>{ URL.revokeObjectURL(u); ov.remove(); };
+  ov.querySelector("#acn2").onclick = close;
+  ov.querySelector("#aok").onclick = ()=>{ if(!marks.length){ close(); return; } cv.toBlob(async bl=>{ close(); if(bl && await replaceSlotBlob(ctx.scope, ctx.slot, bl)) toast("Пометки сохранены"); }, "image/jpeg", .86); };
+  draw(); }
+
+/* ==== НАПОМИНАНИЯ О СРОКАХ ОБРАЩЕНИЙ: уведомления телефона ==== */
+const notifId = (aid,k)=>{ let h = 0; for(const c of String(aid)) h = (h*31 + c.charCodeAt(0))|0; return Math.abs(h % 1000000)*2 + k; };
+let notifBusy = false;
+async function syncNotifs(){
+  if(!isNative || notifBusy) return; notifBusy = true;
+  try{
+    const prev = (db.settings.notifIds||[]).map(id=>({id})); if(prev.length) await nCall("LocalNotifications","cancel",{notifications:prev}).catch(()=>{});
+    const list = [], ids = [], now = Date.now(), at = t=>{ const d = new Date(t); d.setHours(9,0,0,0); return d; };
+    (db.appeals||[]).filter(a=>a.status==="sent").forEach(a=>{ const o = db.objects.find(x=>x.id===a.objId), nm = (o?o.name:"")+(a.to?" → "+a.to:"");
+      const d1 = at(a.dueTs-DAY), d0 = at(a.dueTs);
+      if(d1.getTime()>now) list.push({id:notifId(a.id,0), title:"Завтра срок ответа на обращение", body:nm, schedule:{at:d1.toISOString()}});
+      if(d0.getTime()>now) list.push({id:notifId(a.id,1), title:"Сегодня срок ответа на обращение", body:nm, schedule:{at:d0.toISOString()}}); });
+    if(list.length){ const p = await nCall("LocalNotifications","requestPermissions").catch(()=>null);
+      if(!p || !p.display || p.display==="granted"){ await nCall("LocalNotifications","schedule",{notifications:list}); list.forEach(n=>ids.push(n.id)); } }
+    db.settings.notifIds = ids; try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
+  }catch(e){} finally{ notifBusy = false; } }
+
 load();
+applyBig();
 openIDB().then(render);
 </script>
 </body>

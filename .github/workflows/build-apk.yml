@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      capacitor:
+        description: "Версия Android-обёртки Capacitor (8 — пробная, для Google Play; в Releases не публикуется)"
+        type: choice
+        default: "6"
+        options: ["6", "8"]
 
 permissions:
   contents: write
@@ -20,12 +26,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ inputs.capacitor == '8' && '22' || '20' }}
 
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: ${{ inputs.capacitor == '8' && '21' || '17' }}
 
       - name: Подготовка веб-части
         run: |
@@ -34,6 +40,11 @@ jobs:
           # номер сборки в шапке — виден, даже если код не запустился
           sed -i "s/Версия: разработка/Версия 1.${{ github.run_number }}/" www/index.html
           grep -c "Версия 1.${{ github.run_number }}" www/index.html
+
+      - name: Capacitor 8 (пробная сборка для Google Play)
+        if: inputs.capacitor == '8'
+        run: |
+          npm pkg set dependencies.@capacitor/android=^8.5.0 dependencies.@capacitor/core=^8.5.0 dependencies.@capacitor/filesystem=^8.1.0 dependencies.@capacitor/share=^8.0.0 dependencies.@capacitor/local-notifications=^8.3.0 devDependencies.@capacitor/cli=^8.5.0
 
       - name: Установка зависимостей
         run: npm install --no-audit --no-fund
@@ -158,7 +169,7 @@ jobs:
 
       # в Releases (то, что ставят люди) — только из main; пробные сборки с других веток лежат в Actions → Artifacts
       - name: Публикация в Releases
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
