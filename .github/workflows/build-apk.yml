@@ -47,6 +47,15 @@ jobs:
       - name: Создание Android-проекта
         run: npx cap add android
 
+      - name: Голосовой ввод (плагин Dictation)
+        run: |
+          MA=$(find android/app/src/main/java -name MainActivity.java | head -1)
+          DIR=$(dirname "$MA")
+          PKG=$(grep -m1 '^package ' "$MA" | sed -E 's/^package ([^;]+);.*/\1/')
+          echo "package=$PKG dir=$DIR"
+          for f in MainActivity DictationPlugin; do sed "s/__PKG__/$PKG/" android-src/$f.java > "$DIR/$f.java"; done
+          grep -n "registerPlugin" "$DIR/MainActivity.java"
+
       - name: Разрешения (камера, геолокация) и номер версии
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml

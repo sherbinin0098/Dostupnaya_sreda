@@ -99,6 +99,15 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
 .mapbtns button{flex:1 1 0;padding:12px 6px}
 .overlay img{max-height:60vh}
 .vcap{color:#fff;font-weight:700;font-size:18px}
+
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}.bar>i{display:block;height:100%;background:var(--ok)}
+.rgrp{margin-top:10px}.rrow{display:flex;gap:6px;align-items:stretch;margin-top:4px}
+.rt{flex:1 1 auto;text-align:left;min-height:48px;padding:8px 12px;font-size:16px;font-weight:600}.rt.done{border-color:var(--ok);color:var(--ok)}.rt.skip{opacity:.55;border-style:dashed}
+.rskip{flex:0 0 auto;font-size:14px;min-height:48px}
+.menu{display:grid;gap:10px}.inline{display:flex;gap:8px;align-items:stretch}.inline input{flex:1 1 auto}.mic{flex:0 0 64px;min-height:52px;padding:0;font-size:24px}
+.sbar{width:100%;height:14px;border-radius:6px;display:block;background:var(--line)}.srow{margin-top:10px}.lgs{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:14px}.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tilt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}.tilt>div{display:flex;flex-direction:column;border:2px solid var(--line);border-radius:12px;padding:10px}.tilt b{font-size:34px;line-height:1.1}
+.heard{font-size:15px;margin:6px 0 0}
 </style>
 </head>
 <body>
@@ -832,6 +841,81 @@ const RULES = [
 "status": "ok",
 "note": "Точность остановки в пределах ±10 мм. Вводите измеренный перепад по модулю. То же в СП 59 п. 6.2.13: ±0,01 м.",
 "cond": ""
+},
+{
+"id": "R70",
+"group": "Парковка для МГН",
+"name": "Длина специализированного машино-места для инвалида на коляске",
+"unit": "м",
+"min": 6.0,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.2.4",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Габариты места 6,0 × 3,6 м: безопасная зона сбоку и сзади машины.",
+"cond": ""
+},
+{
+"id": "R71",
+"group": "Парковка для МГН",
+"name": "Ширина специализированного машино-места для инвалида на коляске",
+"unit": "м",
+"min": 3.6,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.2.4",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Габариты места 6,0 × 3,6 м. Место должно быть обозначено разметкой и знаком (п. 5.2.1).",
+"cond": ""
+},
+{
+"id": "R72",
+"group": "Парковка для МГН",
+"name": "Длина машино-места вдоль проезжей части",
+"unit": "м",
+"min": 6.8,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 5.2.4",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Если парковочное место расположено вдоль проезжей части, его длина 6,8 м.",
+"cond": ""
+},
+{
+"id": "R73",
+"group": "Парковка для МГН",
+"name": "Расстояние от места до доступного входа",
+"unit": "м",
+"min": null,
+"max": 50,
+"amin": null,
+"amax": 150,
+"clause": "п. 5.2.2",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Не далее 50 м от входа в предприятие, организацию, учреждение; от входа в жилое здание — не далее 100 м; при реконструкции и сложной конфигурации участка — до 150 м.",
+"cond": "Реконструкция или сложная конфигурация земельного участка (п. 5.2.2). Для жилого дома предел — 100 м."
+},
+{
+"id": "R74",
+"group": "Парковка для МГН",
+"name": "Уклон площадки высадки инвалида из машины (продольный и поперечный)",
+"unit": "‰",
+"min": null,
+"max": 20,
+"amin": null,
+"amax": null,
+"clause": "п. 5.2.3",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "В местах высадки уклоны не более 20‰ (1:50), покрытие ровное нескользкое.",
+"cond": ""
 }
 ];
 const STATUS = {
@@ -864,10 +948,10 @@ async function nativeShareBlob(name, blob){
 
 /* ==== ХРАНИЛИЩЕ ==== */
 const KEY = "gorynych_dostup_v1";
-let db = { objects: [], records: [], overrides: {}, currentObj: null, settings: {stamp:true} };
+let db = { objects: [], records: [], overrides: {}, currentObj: null, settings: {stamp:true}, appeals: [] };
 function load(){ try{ const s = localStorage.getItem(KEY); if(s) db = Object.assign(db, JSON.parse(s)); }catch(e){}
   db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; } });
-  db.settings = Object.assign({stamp:true}, db.settings||{}); }
+  db.settings = Object.assign({stamp:true}, db.settings||{}); db.appeals = db.appeals||[]; }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert("Не удалось сохранить: память браузера недоступна."); } }
 
 /* Фото в IndexedDB */
@@ -946,7 +1030,8 @@ function newDraft(group){ return { group, ruleId:"", value:"", comment:"", exp:"
 let draft = newDraft("");
 let logFilter = "all";
 const app = document.getElementById("app");
-const TABS = [["measure","Замер"],["log","Журнал"],["ramp","Пандус"],["export","Экспорт"],["norms","Нормы"]];
+const TABS = [["measure","Замер"],["log","Журнал"],["appeals","Обращения"],["tools","Расчёты"],["more","Ещё"]];
+const MORE = ["export","stats","norms"];
 
 
 /* Подсказки «что реально сделать» — типовые решения, человек выбирает и дописывает */
@@ -975,13 +1060,13 @@ function groups(){ return [...new Set(RULES.map(r=>r.group))]; }
 
 function renderNav(){
   const nav = document.getElementById("nav");
-  nav.innerHTML = TABS.map(([k,t])=>`<button data-tab="${k}" ${tab===k?'aria-current="true"':''}>${t}</button>`).join("");
+  nav.innerHTML = TABS.map(([k,t])=>`<button data-tab="${k}" ${(tab===k||(k==="more"&&MORE.includes(tab)))?'aria-current="true"':''}>${t}</button>`).join("");
   nav.querySelectorAll("button").forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; render(); window.scrollTo(0,0); });
 }
 function render(){
   document.getElementById("normsub").textContent = "Нормы: "+NORMS_VERSION;
-  renderNav();
-  ({measure:renderMeasure, log:renderLog, ramp:renderRamp, export:renderExport, norms:renderNorms})[tab]();
+  renderNav(); tiltStop();
+  ({measure:renderMeasure, log:renderLog, appeals:renderAppeals, tools:renderTools, more:renderMore, export:renderExport, stats:renderStats, norms:renderNorms})[tab]();
 }
 
 /* ---- Замер ---- */
@@ -990,9 +1075,12 @@ function renderMeasure(){
   let h = `<div class="card"><label for="objsel">Объект</label>
     <select id="objsel"><option value="">— выберите объект —</option>${db.objects.map(x=>`<option value="${x.id}" ${x.id===db.currentObj?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
     <div class="row" style="margin-top:10px"><button id="newobj" class="small">Новый объект</button>${o?`<button id="editobj" class="small">Изменить</button>`:""}</div>
-    ${o?`<p class="muted">${esc(o.address||"")}<br>${esc(BST[o.bstatus]||"")}</p>`:""}</div>`;
+    ${o?`<p class="muted">${esc(o.address||"")}<br>${esc(BST[o.bstatus]||"")}${rnd(o)>1?" · обследование №"+rnd(o):""}</p>`:""}
+    ${o&&db.records.some(r=>r.objId===o.id&&(r.round||1)===rnd(o))?`<button id="newround" class="small" type="button">Повторное обследование</button>`:""}</div>`;
+  h = dueBanner() + h;
   if(!o){ h += `<div class="card">Сначала добавьте объект: название, адрес и пометка, существующее ли здание.</div>`; app.innerHTML=h; bindObj(); return; }
   const gs = groups();
+  h += routeCardHTML(o);
   const rs = allRules().filter(r=>!draft.group||r.group===draft.group);
   const cur = draft.ruleId ? rule(draft.ruleId) : null;
   h += `<div class="card"><label for="grp">Раздел</label>
@@ -1002,7 +1090,8 @@ function renderMeasure(){
   if(cur){
     h += `<p class="muted">Норма: ${esc(normText(cur))} · ${esc(cur.clause)}, ${esc(cur.doc)}</p>
     <label for="val">Факт, ${esc(cur.unit)}</label>
-    <input id="val" type="text" inputmode="decimal" autocomplete="off" placeholder="например 0,85" value="${esc(draft.value)}">
+    <div class="inline"><input id="val" type="text" inputmode="decimal" autocomplete="off" placeholder="например 0,85" value="${esc(draft.value)}">${speechAvailable()?`<button type="button" class="mic" id="mic" aria-label="Сказать число голосом">🎤</button>`:""}</div>
+    <p class="heard muted" id="heard" aria-live="polite"></p>
     <div id="live"></div>
     <label>Место замера</label><div id="dgeo"></div>
     <div class="row" style="margin-top:6px"><button id="dhere" class="small" type="button">📍 Я здесь</button><button id="dmap" class="small" type="button">На карте</button></div>
@@ -1015,7 +1104,9 @@ function renderMeasure(){
     <div style="margin-top:14px"><button id="saveM" class="primary" style="width:100%">Сохранить замер</button></div>`;
   }
   h += `</div>`;
-  app.innerHTML = h; bindObj();
+  app.innerHTML = h; bindObj(); bindRoute(o);
+  const nr = byId("newround"); if(nr) nr.onclick = ()=>startRound(o);
+  const dg = byId("duego"); if(dg) dg.onclick = ()=>{ tab = "appeals"; render(); };
   document.getElementById("grp").onchange = e=>{ draft.group = e.target.value; draft.ruleId=""; draft.value=""; draft.cond=null; renderMeasure(); };
   document.getElementById("rul").onchange = e=>{ draft.ruleId = e.target.value; draft.value=""; draft.cond=null; renderMeasure(); };
   if(cur){
@@ -1028,6 +1119,8 @@ function renderMeasure(){
       live.innerHTML = html;
       live.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ draft.cond = b.dataset.c==="1"; upd(); }); };
     val.oninput = upd; upd();
+    const mic = byId("mic"); if(mic) mic.onclick = ()=>dictate(cur.unit, val, t=>{ byId("heard").textContent = t; });
+    if(focusVal){ focusVal = false; val.focus({preventScroll:true}); val.scrollIntoView({block:"center"}); }
     document.getElementById("cmt").oninput = e=>{ draft.comment = e.target.value; };
     fillImgs(app);
     const sg = ()=>{ byId("dgeo").innerHTML = draftGeoHTML(o); const x = byId("dgeox"); if(x) x.onclick = ()=>{ draft.geo = null; draft.place = ""; sg(); }; };
@@ -1041,7 +1134,7 @@ function renderMeasure(){
     byId("saveM").onclick = ()=>{
       const v = num(val.value); if(v==null){ alert("Введите число."); val.focus(); return; }
       const k = check(cur,v,o), slots = Object.assign({}, draft.slots);
-      db.records.unshift({ id:uid(), objId:o.id, ruleId:cur.id, value:v, result:k, ts:Date.now(), comment:draft.comment.trim(), exp:draft.exp.trim(), fix:draft.fix.trim(),
+      db.records.unshift({ id:uid(), objId:o.id, round:rnd(o), ruleId:cur.id, value:v, result:k, ts:Date.now(), comment:draft.comment.trim(), exp:draft.exp.trim(), fix:draft.fix.trim(),
         geo:draft.geo, place:draft.place, slots, photos:Object.values(slots).filter(Boolean), cond:(k==='relax'?draft.cond:null) });
       save(); draft = newDraft(draft.group);
       toast("Сохранено"); renderMeasure();
@@ -1059,6 +1152,8 @@ function objForm(o){
     <label for="oa">Адрес</label><input id="oa" type="text" data-ac="addr" autocomplete="off" value="${esc(o?o.address:"")}" placeholder="ул. …, дом">
     <div id="ogeo"></div>
     <div class="row" style="margin-top:6px"><button type="button" class="small" id="ohere">📍 Я здесь</button><button type="button" class="small" id="omap">На карте</button></div>
+    <label for="ot">Что обследуем</label>
+    <select id="ot">${Object.entries(OTYPES).map(([k,t])=>`<option value="${k}" ${((o&&o.type)||"bld")===k?"selected":""}>${esc(t)}</option>`).join("")}</select>
     <label for="oe">Строительство или реконструкция завершены позже 1 июля 2016 года?</label>
     <select id="oe">${[["new","Да — новое строительство"],["recon","Да — реконструкция"],["old","Нет — раньше, с тех пор не реконструировалось"],["unknown","Не знаю (уточню)"]].map(([k,t])=>`<option value="${k}" ${((o?o.bstatus:"unknown")===k)?"selected":""}>${t}</option>`).join("")}</select>
     <div class="row"><button class="primary" id="osave">Сохранить</button><button id="ocancel">Отмена</button></div>
@@ -1074,8 +1169,8 @@ function objForm(o){
   document.getElementById("ocancel").onclick = ()=>renderMeasure();
   document.getElementById("osave").onclick = ()=>{
     const name = document.getElementById("on").value.trim(); if(!name){ alert("Введите название."); return; }
-    const data = { name, address:document.getElementById("oa").value.trim(), bstatus:document.getElementById("oe").value, geo:fg }; data.existing = data.bstatus!=="new";
-    if(o) Object.assign(o,data); else { const n = Object.assign({id:uid()},data); db.objects.push(n); db.currentObj = n.id; }
+    const data = { name, address:document.getElementById("oa").value.trim(), bstatus:document.getElementById("oe").value, type:byId("ot").value, geo:fg }; data.existing = data.bstatus!=="new";
+    if(o) Object.assign(o,data); else { const n = Object.assign({id:uid(), round:1, rounds:[{n:1,ts:Date.now()}]},data); db.objects.push(n); db.currentObj = n.id; }
     save(); renderMeasure();
   };
   const d = document.getElementById("odel"); if(d) d.onclick = ()=>{ if(!confirm("Удалить объект и все его замеры?")) return;
@@ -1098,10 +1193,11 @@ function renderLog(){
   let h = `<div class="card"><label for="lf">Показать</label><select id="lf"><option value="all">Все объекты</option>${db.objects.map(o=>`<option value="${o.id}" ${logFilter===o.id?"selected":""}>${esc(o.name)}</option>`).join("")}</select>
   <div class="stat"><span class="badge ok">соотв.: ${cnt.ok}</span><span class="badge bad">не соотв.: ${cnt.bad}</span><span class="badge relax">ждут проверки условия: ${cnt.relax}</span><span class="badge relax">допустимо: ${cnt.relaxok}</span><span class="badge old">до 2016: ${cnt.old}</span><span class="badge nonorm">нет нормы: ${cnt.nonorm}</span></div>
   ${items.length?`<button id="lmapall" class="small" style="width:100%">🗺 Замеры на карте</button>`:""}</div>`;
+  { const fo = logFilter!=="all" ? db.objects.find(x=>x.id===logFilter) : null; if(fo) h += cmpCardHTML(fo); }
   if(!items.length) h += `<div class="card muted">Замеров пока нет.</div>`;
   else h += `<div class="card">`+items.map(({r,v})=>`<div class="item" data-id="${r.id}">
     <div><b>${esc(v.ru.name)}</b></div>
-    <div class="muted">${esc(v.ob?v.ob.name:"?")} · ${new Date(r.ts).toLocaleString("ru-RU",{dateStyle:"short",timeStyle:"short"})}</div>
+    <div class="muted">${esc(v.ob?v.ob.name:"?")} · ${new Date(r.ts).toLocaleString("ru-RU",{dateStyle:"short",timeStyle:"short"})}${v.ob&&rnd(v.ob)>1?" · обследование №"+(r.round||1):""}</div>
     <div>Факт: <b>${fmt(r.value)} ${esc(v.ru.unit)}</b> · ${resultBadge(v.k)}</div>
     <div class="muted">Норма: ${esc(v.ru.min!==undefined?normText(v.ru):"")} · ${esc(v.ru.clause)}, ${esc(v.ru.doc)}</div>
     ${v.baseK==="relax"?`<div class="warn"><b>Условие допуска:</b> ${esc(v.ru.cond||"не указано")}</div><div class="row" style="margin-top:6px"><button class="small ${r.cond===true?"primary":""}" data-cond="1" data-rid="${r.id}">Условие выполнено</button><button class="small ${r.cond===false?"primary":""}" data-cond="0" data-rid="${r.id}">Не выполнено</button></div>`:""}
@@ -1163,38 +1259,19 @@ async function showPhoto(id, ctx){
     ov.querySelector("#prm").onclick = ()=>{ if(!confirm("Убрать это фото?")) return; close(); removeSlotPhoto(ctx.scope, ctx.slot); }; }
 }
 
-/* ---- Пандус ---- */
-function renderRamp(){
-  app.innerHTML = `<div class="card"><h2 style="margin-top:0">Калькулятор уклона пандуса</h2>
-   <label for="rh">Перепад высот, мм</label><input id="rh" type="text" inputmode="decimal" placeholder="например 450">
-   <label for="rl">Длина пандуса по горизонтали, мм</label><input id="rl" type="text" inputmode="decimal" placeholder="например 9000">
-   <div id="rout"></div>
-   <p class="muted">Длина одного марша (СП 59.13330.2020, п. 5.1.14, табл. 5.1): до 40‰ — 15 м, 40–50‰ — 12 м, 50–60‰ — 9 м, 61–80‰ — 6 м. Уклон больше 80‰ — только в стеснённых условиях, до 100‰ при длине наклонной плоскости до 5 м и с сопровождающим (прим. 2 к табл. 5.1). Сверено с текстом СП.</p></div>`;
-  const h = document.getElementById("rh"), l = document.getElementById("rl"), out = document.getElementById("rout");
-  const upd = ()=>{ const hh = num(h.value), ll = num(l.value); if(hh==null||ll==null||ll<=0){ out.innerHTML=""; return; }
-    const pm = hh/ll*1000; const maxLen = pm<=40?15:pm<=50?12:pm<=60?9:pm<=80?6:null;
-    let a, k;
-    if(pm>100){ a = "Уклон выше 100‰ — не соответствует."; k="bad"; }
-    else if(pm>80 && ll>5000){ a = "Выше 80‰ допускается только при длине наклонной плоскости до 5 м, а здесь "+fmt((ll/1000).toFixed(1))+" м — не соответствует."; k="bad"; }
-    else if(pm>80){ a = "Выше 80‰: допустимо только в стеснённых условиях, длина до 5 м, передвижение с сопровождающим (до 100‰)."; k="relax"; }
-    else if(ll/1000<=maxLen){ a = "Уклон и длина марша в пределах нормы."; k="ok"; }
-    else { a = "Марш длиннее допустимого ("+fmt(maxLen)+" м): нужна промежуточная площадка."; k="bad"; }
-    out.innerHTML = `<div class="result ${k}">${esc(a)}<small>Уклон ${fmt(pm.toFixed(1))}‰ (${fmt((pm/10).toFixed(1))} %), 1:${fmt((ll/hh).toFixed(1))}${maxLen?`, макс. длина марша ${fmt(maxLen)} м`:""}</small></div>`; };
-  h.oninput = upd; l.oninput = upd;
-}
-
 /* ---- Экспорт ---- */
-function exportRows(objId){
-  return db.records.filter(r=>!objId||r.objId===objId).slice().reverse().map(r=>{ const v = recView(r); return {r,v}; });
+function exportRows(objId, all){
+  const o = objId ? db.objects.find(x=>x.id===objId) : null;
+  return db.records.filter(r=>!objId||(r.objId===objId&&(all||!o||(r.round||1)===rnd(o)))).slice().reverse().map(r=>{ const v = recView(r); return {r,v}; });
 }
 function csvEsc(s){ s = String(s==null?"":s); return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
 function condState(v, r){ return v.baseK!=="relax" ? "" : (r.cond===true?"выполнено":r.cond===false?"не выполнено":"не проверено"); }
 function buildCSV(objId){
-  const head = ["Дата","Объект","Адрес","Статус здания","Код правила","Параметр","Ед.","Факт","Норма","Результат","Пункт и документ","Статус проверки нормы","Условие допуска","Условие проверено","Комментарий","Опыт эксперта","Что реально сделать","Место замера","Координаты","Карта","Фото, шт."];
+  const head = ["Дата","Объект","Адрес","Статус здания","Код правила","Параметр","Ед.","Факт","Норма","Результат","Пункт и документ","Статус проверки нормы","Условие допуска","Условие проверено","Комментарий","Опыт эксперта","Что реально сделать","Место замера","Координаты","Карта","Фото, шт.","Обследование №"];
   const lines = [head.join(";")];
-  exportRows(objId).forEach(({r,v})=>{ const ru=v.ru, ob=v.ob, g=r.geo||(ob&&ob.geo);
+  exportRows(objId, true).forEach(({r,v})=>{ const ru=v.ru, ob=v.ob, g=r.geo||(ob&&ob.geo);
     lines.push([new Date(r.ts).toLocaleDateString("ru-RU"), ob?ob.name:"", ob?ob.address:"", ob?(BST[ob.bstatus]||""):"", ru.id||r.ruleId, ru.name, ru.unit, fmt(r.value),
-      ru.min!==undefined?normText(ru):"", RES[v.k][0], (ru.clause||"")+", "+(ru.doc||""), STATUS[ru.status]||"", v.baseK==="relax"?(ru.cond||""):"", condState(v,r), r.comment, r.exp||"", r.fix||"", r.place||"", g?geoTxt(g):"", g?mapLink(g):"", (r.photos||[]).length].map(csvEsc).join(";")); });
+      ru.min!==undefined?normText(ru):"", RES[v.k][0], (ru.clause||"")+", "+(ru.doc||""), STATUS[ru.status]||"", v.baseK==="relax"?(ru.cond||""):"", condState(v,r), r.comment, r.exp||"", r.fix||"", r.place||"", g?geoTxt(g):"", g?mapLink(g):"", (r.photos||[]).length, r.round||1].map(csvEsc).join(";")); });
   return "\ufeff"+lines.join("\r\n");
 }
 function buildText(objId, onlyBad){
@@ -1219,15 +1296,18 @@ async function shareOrDownload(name, text, type){
 }
 function renderExport(){
   const o = curObj();
-  app.innerHTML = `<div class="card"><h2 style="margin-top:0">Экспорт</h2>
+  app.innerHTML = `<div class="card">${backBtn()}<h2 style="margin-top:0">Экспорт</h2>
    <label for="eo">Объект</label><select id="eo"><option value="">Все объекты</option>${db.objects.map(x=>`<option value="${x.id}" ${x.id===db.currentObj?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
    <div class="row" style="margin-top:10px"><button id="ecsv" class="primary">Таблица CSV (для Google Таблиц)</button></div>
    <div class="row" style="margin-top:10px"><button id="erep" class="primary">Отчёт с фото</button><button id="erepb">Отчёт с фото: только нарушения</button></div>
    <p class="muted">Отчёт — файл, который открывается на любом телефоне и компьютере как страница: замеры, нормы, пункты, место на карте и фото. Его можно приложить к обращению или распечатать в PDF.</p>
+   <div class="row" style="margin-top:10px"><button id="epass">Справка об объекте (основа паспорта доступности)</button></div>
+   <div class="row" style="margin-top:10px"><button id="ecmp">До и после: отчёт</button><button id="ecmpt">До и после: текст</button></div>
    <div class="row" style="margin-top:10px"><button id="etxt">Текст для акта</button><button id="ebad">Текст для обращения (только нарушения)</button></div>
    <pre id="eprev" class="hidden"></pre><div class="row hidden" id="ebtns"><button id="ecopy" class="small">Копировать</button><button id="eshare" class="small">Поделиться</button></div></div>
    <div class="card"><h3 style="margin-top:0">Резервная копия</h3><p class="muted">Все данные хранятся только в этом телефоне. Копия — один файл со всеми объектами, замерами и фото. Сохраните её в облако или отправьте себе: с ней всё переносится на новый телефон.</p>
    <div class="row"><button id="ebk" class="small">Сохранить копию</button><button id="eim" class="small">Загрузить копию</button></div><input type="file" id="eimf" accept=".json" class="hidden"></div>`;
+  bindBack();
   const sel = ()=>document.getElementById("eo").value;
   document.getElementById("ecsv").onclick = ()=>shareOrDownload("zamery_"+new Date().toISOString().slice(0,10)+".csv", buildCSV(sel()), "text/csv");
   const showT = only=>{ const id = sel(); if(!id){ alert("Выберите конкретный объект."); return; } const t = buildText(id,only);
@@ -1240,6 +1320,10 @@ function renderExport(){
     const o = db.objects.find(x=>x.id===id), html = await buildReport(id, only);
     await shareOrDownload("otchet_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+"_"+new Date().toISOString().slice(0,10)+".html", html, "text/html"); };
   byId("erep").onclick = ()=>rep(false); byId("erepb").onclick = ()=>rep(true);
+  const need = ()=>{ const id = sel(); if(!id){ alert("Выберите конкретный объект."); return null; } return db.objects.find(x=>x.id===id); };
+  byId("epass").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю справку…"); await shareOrDownload("spravka_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildPassport(o.id), "text/html"); };
+  byId("ecmp").onclick = async ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования. Нажмите «Повторное обследование» на вкладке «Замер»."); return; } toast("Готовлю отчёт…"); await shareOrDownload("do_i_posle_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await cmpReport(o), "text/html"); };
+  byId("ecmpt").onclick = ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования."); return; } const p = byId("eprev"); p.textContent = cmpText(o); p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); };
   document.getElementById("ebk").onclick = async ()=>{ toast("Собираю копию…"); const bk = await buildBackup();
     await shareOrDownload("gorynych_backup_"+new Date().toISOString().slice(0,10)+".json", bk.text, "application/json"); };
   document.getElementById("eim").onclick = ()=>document.getElementById("eimf").click();
@@ -1255,7 +1339,7 @@ function renderExport(){
 /* ---- Нормы ---- */
 function renderNorms(){
   const rs = allRules();
-  let h = `<div class="card"><h2 style="margin-top:0">Нормы (справка)</h2>
+  let h = `<div class="card">${backBtn()}<h2 style="margin-top:0">Нормы (справка)</h2>
    <p class="muted">${esc(NORMS_VERSION)}. Если значения нет — впишите его здесь, и проверка сразу заработает. Правки хранятся на этом телефоне.</p>
    <input type="search" id="nq" placeholder="Поиск параметра"></div><div id="nlist"></div>`;
   app.innerHTML = h;
@@ -1269,7 +1353,7 @@ function renderNorms(){
       ${r.cond?`<div class="muted"><b>Условие допуска:</b> ${esc(r.cond)}</div>`:""}
       <button class="small" data-edit="${r.id}" style="margin-top:6px">Изменить норму</button></div>`).join("")+`</div>`;
     app.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editRule(b.dataset.edit)); };
-  document.getElementById("nq").oninput = draw; draw();
+  document.getElementById("nq").oninput = draw; draw(); bindBack();
 }
 function editRule(id){
   const r = rule(id);
@@ -1550,6 +1634,362 @@ ${body||"<p>—</p>"}
 async function buildBackup(){ const photos = {}, ids = new Set(); db.records.forEach(r=>(r.photos||[]).forEach(id=>ids.add(id)));
   for(const id of ids){ const b = await getPhoto(id); const d = b && await blobToDataURL(b); if(d) photos[id] = d; }
   return {text:JSON.stringify({app:"gorynych-dostup", v:2, saved:new Date().toISOString(), db, photos}), n:Object.keys(photos).length}; }
+
+/* ==== ТИПЫ ОБЪЕКТОВ И МАРШРУТ ОБСЛЕДОВАНИЯ ==== */
+const OTYPES = { bld:"Здание (поликлиника, школа, магазин, офис…)", street:"Улица, тротуары, переходы", other:"Всё подряд (все разделы)" };
+const ROUTES = {
+  bld:["Парковка для МГН","Пути движения","Пандус","Бордюрный съезд","Входная группа","Тамбур","Двери","Информация","Коридор","Лифт","Туалет (универсальная кабина)"],
+  street:["Парковка для МГН","Пути движения","Бордюрный съезд","Пандус","Улица / покрытие","Улица / переходы","Улица / зона отдыха","Улица / маршрут"],
+  other:null };
+const rnd = o => (o && o.round) || 1;
+const skipKey = (o,id) => rnd(o)+":"+id;
+const hasNorm = r => r.min!=null || r.max!=null;
+function routeGroups(o){ return ROUTES[(o&&o.type)||"other"] || groups(); }
+function routeState(o){
+  const done = new Set(db.records.filter(r=>r.objId===o.id && (r.round||1)===rnd(o)).map(r=>r.ruleId));
+  const skip = o.skip || {}, all = allRules();
+  const gs = routeGroups(o).map(g=>({g, items:all.filter(r=>r.group===g && hasNorm(r)).map(r=>({r, done:done.has(r.id), skip:!!skip[skipKey(o,r.id)]}))})).filter(x=>x.items.length);
+  let total = 0, fin = 0, next = null;
+  gs.forEach(x=>x.items.forEach(i=>{ if(i.skip) return; total++; if(i.done) fin++; else if(!next) next = i.r; }));
+  return {gs, total, fin, next};
+}
+let routeOpen = false, focusVal = false;
+function routeCardHTML(o){
+  const st = routeState(o), pct = st.total ? Math.round(st.fin/st.total*100) : 0;
+  const list = st.gs.map(x=>{ const d = x.items.filter(i=>i.done&&!i.skip).length, n = x.items.filter(i=>!i.skip).length;
+    return `<div class="rgrp"><b>${esc(x.g)}</b> <span class="muted">${d} из ${n}</span>`+x.items.map(i=>`<div class="rrow"><button type="button" class="rt ${i.done?"done":""} ${i.skip?"skip":""}" data-rule="${i.r.id}">${i.done?"✓ ":i.skip?"– ":""}${esc(i.r.name)}</button><button type="button" class="small rskip" data-skip="${i.r.id}" aria-label="${i.skip?"Вернуть пункт":"Не применимо"}">${i.skip?"вернуть":"нет такого"}</button></div>`).join("")+`</div>`; }).join("");
+  return `<div class="card"><div class="row" style="align-items:center;justify-content:space-between"><b>Маршрут обследования</b><span class="muted">${esc(OTYPES[o.type||"other"].split(" (")[0])}</span></div>
+    <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
+    <p class="muted" style="margin:4px 0 8px">Проверено ${st.fin} из ${st.total}${rnd(o)>1?" · обследование №"+rnd(o):""}</p>
+    ${st.next?`<button type="button" class="primary" id="rnext" style="width:100%">Дальше: ${esc(st.next.name)}</button>`:`<div class="result ok" style="margin:0">Маршрут пройден</div>`}
+    <details id="rdet" ${routeOpen?"open":""} style="margin-top:8px"><summary>Весь маршрут и пропуск пунктов</summary>${list}</details></div>`; }
+function bindRoute(o){
+  const pick = id=>{ const r = rule(id); draft.group = r.group; draft.ruleId = r.id; draft.value = ""; draft.cond = null; focusVal = true; renderMeasure(); };
+  const nx = byId("rnext"); if(nx) nx.onclick = ()=>pick(routeState(o).next.id);
+  const det = byId("rdet"); if(det) det.ontoggle = ()=>{ routeOpen = det.open; };
+  document.querySelectorAll("[data-rule]").forEach(b=>b.onclick=()=>pick(b.dataset.rule));
+  document.querySelectorAll("[data-skip]").forEach(b=>b.onclick=()=>{ o.skip = o.skip||{}; const k = skipKey(o,b.dataset.skip); if(o.skip[k]) delete o.skip[k]; else o.skip[k] = true; save(); routeOpen = true; renderMeasure(); });
+}
+function startRound(o){
+  if(!confirm("Начать повторное обследование №"+(rnd(o)+1)+"? Прежние замеры останутся как «до», маршрут начнётся заново.")) return;
+  o.round = rnd(o)+1; (o.rounds = o.rounds||[{n:1,ts:0}]).push({n:o.round, ts:Date.now()});
+  draft = newDraft(draft.group); routeOpen = false; save(); toast("Обследование №"+o.round); renderMeasure(); }
+
+/* ==== ДО И ПОСЛЕ ==== */
+const isGood = k => k==="ok" || k==="relaxok";
+function cmpData(o){
+  const last = rnd(o); if(last<2) return null;
+  const by = {}; db.records.filter(r=>r.objId===o.id).forEach(r=>{ const n = r.round||1, m = by[r.ruleId]||(by[r.ruleId]={}); if(!m[n]||m[n].ts<r.ts) m[n] = r; });
+  const rows = [];
+  Object.keys(by).forEach(id=>{ const m = by[id], prevN = Object.keys(m).map(Number).filter(n=>n<last).sort((a,b)=>b-a)[0];
+    const b = prevN ? m[prevN] : null, a = m[last] || null; if(!b && !a) return;
+    const bv = b ? recView(b) : null, av = a ? recView(a) : null, ru = (av||bv).ru;
+    if((bv&&bv.k==="nonorm")||(av&&av.k==="nonorm")) return;
+    let cat; const bg = bv ? isGood(bv.k) : null, ag = av ? isGood(av.k) : null;
+    if(!b) cat = "new"; else if(!a) cat = bg ? "ok" : "wait"; else if(!bg && ag) cat = "fixed"; else if(!bg && !ag) cat = "still"; else if(bg && !ag) cat = "worse"; else cat = "ok";
+    rows.push({ru, b, a, bv, av, cat}); });
+  const cnt = {fixed:0, still:0, wait:0, worse:0, new:0, ok:0}; rows.forEach(x=>{ if(x.cat==="new"&&x.av&&isGood(x.av.k)) x.cat = "ok"; cnt[x.cat]++; });
+  return {last, rows, cnt, prevBad:cnt.fixed+cnt.still+cnt.wait, ts:(o.rounds||[]).find(x=>x.n===last)};
+}
+const CMPN = {fixed:"Устранено", still:"Не устранено", wait:"Не проверено повторно", worse:"Появилось нарушение", new:"Новый замер", ok:"Было и осталось в норме"};
+const CMPC = {fixed:"ok", still:"bad", wait:"relax", worse:"bad", new:"nonorm", ok:"ok"};
+function cmpValTxt(x, w){ const r = w==="b"?x.b:x.a, v = w==="b"?x.bv:x.av; return r ? `${fmt(r.value)} ${x.ru.unit} — ${RES[v.k][0]}` : "—"; }
+function cmpSummary(c){ return `Ранее выявлено нарушений: ${c.prevBad}. Устранено: ${c.cnt.fixed}. Не устранено: ${c.cnt.still}. Не проверено повторно: ${c.cnt.wait}. Появилось новых нарушений: ${c.cnt.worse}.`; }
+function cmpCardHTML(o){ const c = cmpData(o); if(!c) return "";
+  const rows = c.rows.filter(x=>["still","fixed","worse","wait"].includes(x.cat));
+  return `<div class="card"><h3 style="margin:0 0 6px">До и после: ${esc(o.name)}</h3>
+    <div class="stat"><span class="badge ok">устранено: ${c.cnt.fixed}</span><span class="badge bad">не устранено: ${c.cnt.still}</span><span class="badge relax">не проверено: ${c.cnt.wait}</span><span class="badge bad">новые: ${c.cnt.worse}</span></div>
+    <p class="muted">${esc(cmpSummary(c))}</p>`
+    + rows.map(x=>`<div class="item"><b>${esc(x.ru.name)}</b><div class="muted">${esc(CMPN[x.cat])}</div><div>Было: ${esc(cmpValTxt(x,"b"))}</div><div>Стало: ${esc(cmpValTxt(x,"a"))}</div></div>`).join("")+`</div>`; }
+function cmpText(o){ const c = cmpData(o); if(!c) return "";
+  let t = `Повторное обследование объекта «${o.name}»${o.address?", "+o.address:""}.\nДата: ${new Date().toLocaleDateString("ru-RU")}.\n\n${cmpSummary(c)}\n`;
+  const part = (cat,title)=>{ const rs = c.rows.filter(x=>x.cat===cat); if(!rs.length) return; t += `\n${title}:\n`;
+    rs.forEach((x,i)=>{ t += `${i+1}. ${x.ru.name}: было ${cmpValTxt(x,"b")}; стало ${cmpValTxt(x,"a")}; требуется ${normText(x.ru)} (${x.ru.clause}, ${x.ru.doc}).\n`; }); };
+  part("still","Не устранено"); part("worse","Появились нарушения"); part("wait","Не проверено повторно"); part("fixed","Устранено");
+  return t+"\nЗначения норм должны быть сверены с действующей редакцией свода правил.\n"; }
+async function cmpReport(o){ const c = cmpData(o); if(!c) return "";
+  const dt = t=>t?new Date(t).toLocaleString("ru-RU",{dateStyle:"short",timeStyle:"short"}):"";
+  let body = "";
+  for(const x of c.rows.filter(x=>x.cat!=="ok")){
+    const ph = async r=>{ const id = r && (r.photos||[]).find(Boolean); const b = id && await getPhoto(id); const d = b && await blobToDataURL(b); return d?`<img src="${d}" alt="">`:""; };
+    body += `<section><h3>${esc(x.ru.name)}</h3><p class="res ${CMPC[x.cat]}">${esc(CMPN[x.cat])}</p>
+      <table><tr><th>Требуется</th><td>${esc(normText(x.ru))} (${esc(x.ru.clause)}, ${esc(x.ru.doc)})</td></tr>
+      <tr><th>Было</th><td>${esc(cmpValTxt(x,"b"))}${x.b?" · "+dt(x.b.ts):""}</td></tr><tr><th>Стало</th><td>${esc(cmpValTxt(x,"a"))}${x.a?" · "+dt(x.a.ts):""}</td></tr></table>
+      <div class="ph">${await ph(x.b)}${await ph(x.a)}</div></section>`; }
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(o.name)} — до и после</title><style>${REPORT_CSS}</style></head><body>
+<p class="muted">Мастерская Горыныча: Экспертиза на колёсах · Новосибирск</p><h1>${esc(o.name)}: повторное обследование</h1>
+<p>Адрес: ${esc(o.address||"—")}<br>Обследование №${c.last}${c.ts&&c.ts.ts?" от "+dt(c.ts.ts):""}</p><p><b>${esc(cmpSummary(c))}</b></p>${body||"<p>—</p>"}
+<p class="muted">Нормы: ${esc(NORMS_VERSION)}. Результат — рабочая подсказка, а не юридическое заключение.</p></body></html>`; }
+
+/* ==== ОБРАЩЕНИЯ СО СРОКАМИ ==== */
+const DAY = 864e5;
+const ASTAT = {sent:"Отправлено, ждём ответ", answered:"Ответ получен", fixed:"Устранено", refused:"Отказ или отписка"};
+const dstr = t => new Date(t).toLocaleDateString("ru-RU");
+const toISO = t => { const d = new Date(t); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fromISO = s => { const d = new Date(s+"T12:00:00"); return isNaN(d) ? Date.now() : d.getTime(); };
+function dueInfo(a){ if(a.status!=="sent") return {txt:ASTAT[a.status], cls:a.status==="fixed"?"ok":a.status==="refused"?"bad":"relax", days:null};
+  const d = Math.ceil((a.dueTs-Date.now())/DAY);
+  return d<0 ? {txt:"Срок ответа вышел "+(-d)+" дн. назад", cls:"bad", days:d} : d===0 ? {txt:"Срок ответа — сегодня", cls:"bad", days:d} : {txt:"Ответ ждём до "+dstr(a.dueTs)+" (осталось "+d+" дн.)", cls:d<=3?"relax":"ok", days:d}; }
+function dueBanner(){ const list = (db.appeals||[]).filter(a=>a.status==="sent" && dueInfo(a).days<=3).sort((a,b)=>a.dueTs-b.dueTs); if(!list.length) return "";
+  return `<div class="card warn" id="duebn"><b>Сроки по обращениям</b>`+list.slice(0,3).map(a=>{ const o = db.objects.find(x=>x.id===a.objId); return `<div>${esc(o?o.name:"")} → ${esc(a.to||"")}: ${esc(dueInfo(a).txt)}</div>`; }).join("")+`<button type="button" class="small" id="duego" style="margin-top:6px">Открыть обращения</button></div>`; }
+function icsText(a){ const o = db.objects.find(x=>x.id===a.objId), d = toISO(a.dueTs).replace(/-/g,""), nx = toISO(a.dueTs+DAY).replace(/-/g,"");
+  const e = s=>String(s||"").replace(/[\\;,]/g,m=>"\\"+m).replace(/\n/g,"\\n");
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Gorynych//Dostupnost//RU","BEGIN:VEVENT","UID:"+a.id+"@gorynych","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART;VALUE=DATE:"+d,"DTEND;VALUE=DATE:"+nx,
+    "SUMMARY:"+e("Срок ответа на обращение: "+(o?o.name:"")),"DESCRIPTION:"+e((a.to?"Кому: "+a.to+"\n":"")+(a.regNo?"Номер: "+a.regNo+"\n":"")+(a.subject||"")),
+    "BEGIN:VALARM","TRIGGER:-P1D","ACTION:DISPLAY","DESCRIPTION:Завтра срок ответа","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n"); }
+function renderAppeals(){
+  const list = (db.appeals||[]).slice().sort((x,y)=>(x.status==="sent"?0:1)-(y.status==="sent"?0:1) || (x.status==="sent"?x.dueTs-y.dueTs:y.sentTs-x.sentTs));
+  let h = `<div class="card"><h2 style="margin-top:0">Обращения</h2><p class="muted">Куда и когда отправили, когда ждать ответ. Срок по умолчанию 30 дней (обращения рассматриваются обычно в течение 30 дней со дня регистрации; точный срок смотрите в ответе о регистрации).</p>
+    <button class="primary" id="anew" style="width:100%">Новое обращение</button></div>`;
+  if(!list.length) h += `<div class="card muted">Обращений пока нет.</div>`;
+  list.forEach(a=>{ const o = db.objects.find(x=>x.id===a.objId), di = dueInfo(a);
+    h += `<div class="card" data-aid="${a.id}"><b>${esc(o?o.name:"объект удалён")}</b><div class="muted">Кому: ${esc(a.to||"—")}${a.regNo?" · № "+esc(a.regNo):""}</div>
+      <div class="muted">Отправлено ${dstr(a.sentTs)}${a.how?" · "+esc(a.how):""}</div><div style="margin:6px 0"><span class="badge ${di.cls}">${esc(di.txt)}</span></div>
+      ${a.subject?`<div>${esc(a.subject)}</div>`:""}${a.answer?`<div class="warn"><b>Ответ${a.answerTs?" от "+dstr(a.answerTs):""}:</b> ${esc(a.answer)}</div>`:""}
+      <div class="row" style="margin-top:8px">${a.status==="sent"?`<button class="small" data-aa="answer">Ответ получен</button>`:`<button class="small" data-aa="reopen">Снова ждём</button>`}
+      ${a.status!=="fixed"?`<button class="small" data-aa="fixed">Устранено</button>`:""}${o?`<button class="small" data-aa="recheck">Проверить заново</button>`:""}
+      <button class="small" data-aa="ics">В календарь</button><button class="small" data-aa="text">Текст обращения</button><button class="small" data-aa="edit">Изменить</button><button class="small danger" data-aa="del">Удалить</button></div></div>`; });
+  app.innerHTML = h;
+  byId("anew").onclick = ()=>appealForm(null);
+  app.querySelectorAll("[data-aa]").forEach(b=>b.onclick=()=>{ const id = b.closest("[data-aid]").dataset.aid, a = db.appeals.find(x=>x.id===id), o = db.objects.find(x=>x.id===a.objId), w = b.dataset.aa;
+    if(w==="edit") return appealForm(a);
+    if(w==="answer") return answerForm(a);
+    if(w==="fixed"){ a.status = "fixed"; a.answerTs = a.answerTs||Date.now(); save(); toast("Отмечено: устранено"); return renderAppeals(); }
+    if(w==="reopen"){ a.status = "sent"; save(); return renderAppeals(); }
+    if(w==="recheck"){ db.currentObj = o.id; save(); tab = "measure"; render(); return startRound(o); }
+    if(w==="ics") return shareOrDownload("srok_otveta_"+toISO(a.dueTs)+".ics", icsText(a), "text/calendar");
+    if(w==="text"){ if(!o) return; return shareOrDownload("obrashchenie.txt", buildText(o.id,true), "text/plain"); }
+    if(w==="del"){ if(!confirm("Удалить обращение?")) return; db.appeals = db.appeals.filter(x=>x.id!==id); save(); renderAppeals(); } });
+}
+function appealForm(a){
+  const prevTo = [...new Set((db.appeals||[]).map(x=>x.to).filter(Boolean))].slice(0,6), o0 = curObj();
+  const v = a || {objId:o0?o0.id:"", to:"", how:"", regNo:"", sentTs:Date.now(), days:30, subject:""};
+  app.innerHTML = `<div class="card"><h2 style="margin-top:0">${a?"Изменить обращение":"Новое обращение"}</h2>
+   <label for="aobj">Объект</label><select id="aobj">${db.objects.map(x=>`<option value="${x.id}" ${x.id===v.objId?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
+   <label for="ato">Кому</label><input id="ato" type="text" autocomplete="off" value="${esc(v.to)}" placeholder="Например: департамент … мэрии">
+   ${prevTo.length?`<div class="chips">${prevTo.map(t=>`<button type="button" class="chip" data-to="${esc(t)}">${esc(t)}</button>`).join("")}</div>`:""}
+   <label for="ahow">Как отправили</label><select id="ahow">${["","Через портал","По почте","Лично","По электронной почте","Другое"].map(t=>`<option ${t===(v.how||"")?"selected":""}>${t}</option>`).join("")}</select>
+   <label for="areg">Номер обращения (если дали)</label><input id="areg" type="text" autocomplete="off" value="${esc(v.regNo||"")}">
+   <div class="row"><div><label for="adate">Дата отправки</label><input id="adate" type="date" value="${toISO(v.sentTs)}"></div><div><label for="adays">Срок ответа, дней</label><input id="adays" type="number" inputmode="numeric" min="1" value="${a?Math.round((a.dueTs-a.sentTs)/DAY):v.days}"></div></div>
+   <label for="asub">О чём просили</label><textarea id="asub" placeholder="Например: устранить нарушения доступности входной группы">${esc(v.subject||"")}</textarea>
+   <div class="row" style="margin-top:12px"><button class="primary" id="asv">Сохранить</button><button id="acn">Отмена</button></div></div>`;
+  app.querySelectorAll("[data-to]").forEach(b=>b.onclick=()=>{ byId("ato").value = b.dataset.to; });
+  byId("acn").onclick = renderAppeals;
+  byId("asv").onclick = ()=>{ if(!db.objects.length){ alert("Сначала добавьте объект на вкладке «Замер»."); return; }
+    const sentTs = fromISO(byId("adate").value), days = Math.max(1, parseInt(byId("adays").value,10)||30);
+    const d = {objId:byId("aobj").value, to:byId("ato").value.trim(), how:byId("ahow").value, regNo:byId("areg").value.trim(), sentTs, dueTs:sentTs+days*DAY, subject:byId("asub").value.trim()};
+    if(a) Object.assign(a,d); else (db.appeals = db.appeals||[]).push(Object.assign({id:uid(), status:"sent", answer:"", answerTs:null}, d));
+    save(); toast("Сохранено"); renderAppeals(); };
+}
+function answerForm(a){
+  app.innerHTML = `<div class="card"><h2 style="margin-top:0">Ответ на обращение</h2>
+   <label for="ad">Дата ответа</label><input id="ad" type="date" value="${toISO(Date.now())}">
+   <label for="ast">Итог</label><select id="ast"><option value="answered">Ответили, ждём исполнения</option><option value="fixed">Устранили</option><option value="refused">Отказ или отписка</option></select>
+   <label for="atx">Что ответили</label><textarea id="atx" placeholder="Коротко: что пообещали и в какой срок">${esc(a.answer||"")}</textarea>
+   <div class="row" style="margin-top:12px"><button class="primary" id="asv">Сохранить</button><button id="acn">Отмена</button></div></div>`;
+  byId("acn").onclick = renderAppeals;
+  byId("asv").onclick = ()=>{ a.status = byId("ast").value; a.answerTs = fromISO(byId("ad").value); a.answer = byId("atx").value.trim(); save(); toast("Сохранено"); renderAppeals(); };
+}
+
+/* ==== СВОДКА ==== */
+const KINDS = [["good","Соответствует","#1b7a3a"],["cond","Допустимо при условии","#d4a017"],["old","Ниже нормы (до 2016)","#e08a1e"],["bad","Не соответствует","#c0352b"],["nonorm","Нет нормы","#8a93a3"]];
+const kindOf = k => isGood(k)?"good":k==="relax"?"cond":k==="old"?"old":(k==="bad"||k==="bad2")?"bad":"nonorm";
+let statPeriod = "all", statObj = "all";
+function statRows(){ const now = new Date(), from = statPeriod==="m"? new Date(now.getFullYear(),now.getMonth(),1).getTime() : statPeriod==="y"? new Date(now.getFullYear(),0,1).getTime() : statPeriod==="d30"? Date.now()-30*DAY : 0;
+  return db.records.filter(r=>r.ts>=from && (statObj==="all"||r.objId===statObj)).map(r=>({r, v:recView(r)})).filter(x=>x.v.ru); }
+function bar(counts){ const t = KINDS.reduce((s,[k])=>s+(counts[k]||0),0)||1;
+  return `<svg viewBox="0 0 100 6" preserveAspectRatio="none" class="sbar" role="img" aria-label="${esc(KINDS.map(([k,n])=>n+": "+(counts[k]||0)).join(", "))}">`+(()=>{ let x = 0; return KINDS.map(([k,n,c])=>{ const w = (counts[k]||0)/t*100, s = `<rect x="${x}" y="0" width="${w}" height="6" fill="${c}"/>`; x += w; return s; }).join(""); })()+`</svg>`; }
+function pctOk(c){ const d = (c.good||0)+(c.cond||0)+(c.old||0)+(c.bad||0); return d ? Math.round((c.good||0)/d*100) : null; }
+function statData(){ const rows = statRows(), tot = {}, byG = {}, byO = {}, byT = {};
+  rows.forEach(({r,v})=>{ const k = kindOf(v.k), g = v.ru.group||"—", o = v.ob;
+    tot[k] = (tot[k]||0)+1; (byG[g] = byG[g]||{})[k] = (byG[g][k]||0)+1;
+    if(o){ (byO[o.id] = byO[o.id]||{o,c:{}}).c[k] = (byO[o.id].c[k]||0)+1; const tn = (OTYPES[o.type||"other"]||"").split(" (")[0]; (byT[tn] = byT[tn]||{})[k] = (byT[tn][k]||0)+1; } });
+  return {rows, tot, byG, byO, byT}; }
+function statText(d){ let t = `Сводка обследований (${new Date().toLocaleDateString("ru-RU")}).\nЗамеров: ${d.rows.length}, объектов: ${Object.keys(d.byO).length}.\n`;
+  KINDS.forEach(([k,n])=>{ if(d.tot[k]) t += `${n}: ${d.tot[k]}\n`; });
+  t += "\nПо разделам (не соответствует из всех замеров):\n"; Object.entries(d.byG).sort((a,b)=>(b[1].bad||0)-(a[1].bad||0)).forEach(([g,c])=>{ const n = KINDS.reduce((s,[k])=>s+(c[k]||0),0); t += `${g}: ${c.bad||0} из ${n}\n`; });
+  t += "\nПо объектам (доля соответствия):\n"; Object.values(d.byO).forEach(x=>{ const p = pctOk(x.c); t += `${x.o.name}: ${p==null?"—":p+"%"}\n`; }); return t; }
+function renderStats(){
+  const d = statData(), legend = KINDS.map(([k,n,c])=>`<span class="lg"><i style="background:${c}"></i>${n}: ${d.tot[k]||0}</span>`).join("");
+  let h = `<div class="card">${backBtn()}<h2 style="margin-top:0">Сводка</h2>
+    <div class="row"><div><label for="sp">Период</label><select id="sp">${[["all","За всё время"],["m","Этот месяц"],["d30","Последние 30 дней"],["y","Этот год"]].map(([k,t])=>`<option value="${k}" ${statPeriod===k?"selected":""}>${t}</option>`).join("")}</select></div>
+    <div><label for="so">Объект</label><select id="so"><option value="all">Все объекты</option>${db.objects.map(o=>`<option value="${o.id}" ${statObj===o.id?"selected":""}>${esc(o.name)}</option>`).join("")}</select></div></div></div>`;
+  if(!d.rows.length){ h += `<div class="card muted">За выбранный период замеров нет.</div>`; app.innerHTML = h; bindStats(d); return; }
+  h += `<div class="card"><b>Замеров: ${d.rows.length} · объектов: ${Object.keys(d.byO).length}</b>${bar(d.tot)}<div class="lgs">${legend}</div></div>
+    <div class="card"><b>По разделам</b>`+Object.entries(d.byG).sort((a,b)=>(b[1].bad||0)-(a[1].bad||0)).map(([g,c])=>`<div class="srow"><div class="muted">${esc(g)}</div>${bar(c)}</div>`).join("")+`</div>
+    <div class="card"><b>По объектам: доля соответствия</b>`+Object.values(d.byO).sort((a,b)=>(pctOk(a.c)??101)-(pctOk(b.c)??101)).map(x=>{ const p = pctOk(x.c); return `<div class="srow"><div class="muted">${esc(x.o.name)} — ${p==null?"нет данных":p+"%"}</div>${bar(x.c)}</div>`; }).join("")+`</div>`
+    + (Object.keys(d.byT).length>1?`<div class="card"><b>По видам объектов</b>`+Object.entries(d.byT).map(([t,c])=>`<div class="srow"><div class="muted">${esc(t)}</div>${bar(c)}</div>`).join("")+`</div>`:"")
+    + `<div class="card"><div class="row"><button id="stcopy" class="small">Копировать сводку</button><button id="stshare" class="small">Поделиться</button></div></div>`;
+  app.innerHTML = h; bindStats(d); }
+function bindStats(d){ byId("sp").onchange = e=>{ statPeriod = e.target.value; renderStats(); }; byId("so").onchange = e=>{ statObj = e.target.value; renderStats(); };
+  const c = byId("stcopy"); if(c){ c.onclick = async ()=>{ try{ await navigator.clipboard.writeText(statText(d)); toast("Скопировано"); }catch(e){ alert("Не удалось скопировать."); } };
+    byId("stshare").onclick = ()=>shareOrDownload("svodka.txt", statText(d), "text/plain"); } bindBack(); }
+function backBtn(){ return `<button type="button" class="small" id="backmore" style="margin-bottom:8px">← Ещё</button>`; }
+function bindBack(){ const b = byId("backmore"); if(b) b.onclick = ()=>{ tab = "more"; render(); window.scrollTo(0,0); }; }
+
+/* ==== ПАРКОВКА МГН: СКОЛЬКО МЕСТ НУЖНО (СП 59.13330.2020, п. 5.2.1) ==== */
+function parkNeed(n){ const all = Math.max(1, Math.ceil(n*0.10));
+  const spec = n<=100 ? Math.max(1, Math.ceil(n*0.05)) : n<=200 ? Math.ceil(5+0.03*(n-100)) : n<=500 ? Math.ceil(8+0.02*(n-200)) : Math.ceil(14+0.01*(n-500));
+  return {all, spec}; }
+
+/* ==== УКЛОНОМЕР: датчик наклона телефона ==== */
+const TILT_KEY = "gorynych_tilt_v1";
+let tilt = { on:false, buf:[], got:false, cal:{a:0, c:0}, c1:null, h:null };
+function tiltLoad(){ try{ const j = JSON.parse(localStorage.getItem(TILT_KEY)||"null"); if(j&&isFinite(j.a)&&isFinite(j.c)) tilt.cal = j; }catch(e){} }
+function tiltSave(){ try{ localStorage.setItem(TILT_KEY, JSON.stringify(tilt.cal)); }catch(e){} }
+function tiltAngles(g){ const z = Math.abs(g.z)||1e-6; return {a:Math.atan2(g.y, z), c:Math.atan2(g.x, z)}; } // вдоль длинной стороны, поперёк
+function tiltRaw(){ const b = tilt.buf; if(b.length<5) return null; const m = k=>b.reduce((s,x)=>s+x[k],0)/b.length;
+  const ma = m("a"), mc = m("c"), sd = Math.sqrt(b.reduce((s,x)=>s+(x.a-ma)**2,0)/b.length); return {a:ma, c:mc, sd}; }
+function tiltCur(){ const r = tiltRaw(); if(!r) return null; const pm = rad=>Math.round(Math.tan(rad)*10000)/10;
+  return {along:pm(Math.abs(r.a-tilt.cal.a)), cross:pm(Math.abs(r.c-tilt.cal.c)), still:r.sd<0.004}; }
+function tiltOnMotion(e){ const g = e.accelerationIncludingGravity; if(!g||g.x==null||g.y==null||g.z==null) return; tilt.got = true;
+  tilt.buf.push(tiltAngles(g)); if(tilt.buf.length>30) tilt.buf.shift(); }
+function tiltStart(){ if(tilt.on) return; tilt.on = true; tilt.buf = []; tilt.got = false; window.addEventListener("devicemotion", tiltOnMotion);
+  tilt.h = setInterval(tiltDraw, 250); setTimeout(()=>{ if(tilt.on && !tilt.got){ const el = byId("tiltval"); if(el) el.innerHTML = `<p class="muted">Датчик наклона не отвечает. На этом телефоне уклономер недоступен — используйте рулетку и калькулятор.</p>`; } }, 2500); }
+function tiltStop(){ if(!tilt.on) return; tilt.on = false; window.removeEventListener("devicemotion", tiltOnMotion); clearInterval(tilt.h); }
+const ratioTxt = pm => pm>0 ? "1:"+fmt((1000/pm).toFixed(1)) : "—";
+function tiltDraw(){ const el = byId("tiltval"), c = tiltCur(); if(!el||!c) return;
+  el.innerHTML = `<div class="tilt"><div><span class="muted">Вдоль телефона</span><b>${fmt(c.along.toFixed(0))}‰</b><span class="muted">${ratioTxt(c.along)} · ${fmt((c.along/10).toFixed(1))} %</span></div>
+    <div><span class="muted">Поперёк телефона</span><b>${fmt(c.cross.toFixed(0))}‰</b><span class="muted">${ratioTxt(c.cross)} · ${fmt((c.cross/10).toFixed(1))} %</span></div></div>
+    <p class="muted" style="margin:6px 0 0">${c.still?"Держится ровно, можно записывать.":"Телефон двигается, подождите."}</p>`; }
+function tiltCalStep(n){ const r = tiltRaw(); if(!r){ toast("Датчик ещё не ответил"); return; }
+  if(n===1){ tilt.c1 = {a:r.a, c:r.c}; toast("Запомнено. Теперь поверните на 180°"); byId("tcal2").disabled = false; return; }
+  if(!tilt.c1){ toast("Сначала шаг 1"); return; }
+  tilt.cal = {a:(tilt.c1.a+r.a)/2, c:(tilt.c1.c+r.c)/2}; tilt.c1 = null; tiltSave(); toast("Калибровка сохранена"); byId("tcal2").disabled = true; }
+function tiltToMeasure(which){ const c = tiltCur(), o = curObj(); if(!c) return; if(!o){ toast("Сначала выберите объект на вкладке «Замер»"); return; }
+  const r = rule(byId("tpar").value); if(!r) return; const v = which==="along" ? c.along : c.cross;
+  draft.group = r.group; draft.ruleId = r.id; draft.value = String(Math.round(v)); draft.cond = null; draft.comment = "Замер уклономером телефона, ориентировочно"; tab = "measure"; focusVal = true; render(); }
+
+/* ==== ГОЛОС: диктовка значения ==== */
+const NUM = {ноль:0,нуль:0,один:1,одна:1,одно:1,два:2,две:2,три:3,четыре:4,пять:5,шесть:6,семь:7,восемь:8,девять:9,десять:10,одиннадцать:11,двенадцать:12,тринадцать:13,четырнадцать:14,пятнадцать:15,шестнадцать:16,семнадцать:17,восемнадцать:18,девятнадцать:19,
+  двадцать:20,тридцать:30,сорок:40,пятьдесят:50,шестьдесят:60,семьдесят:70,восемьдесят:80,девяносто:90,сто:100,двести:200,триста:300,четыреста:400,пятьсот:500,шестьсот:600,семьсот:700,восемьсот:800,девятьсот:900};
+function wordsToInt(tokens){ let total = 0, cur = 0, any = false;
+  for(const t of tokens){ if(t in NUM){ cur += NUM[t]; any = true; } else if(/^тысяч/.test(t)){ total += (cur||1)*1000; cur = 0; any = true; } else return null; }
+  return any ? total+cur : null; }
+function parseSpoken(text, unit){
+  const s = String(text||"").toLowerCase().replace(/ё/g,"е").replace(/(\d)\s*[.,]\s*(\d)/g,"$1.$2").replace(/[^a-zа-я0-9. ]+/g," ").replace(/\s+/g," ").trim(); if(!s) return null;
+  let n = null, dec = false, rest = s;
+  const dm = s.match(/(\d+(?:\.\d+)?)/);
+  if(dm){ n = parseFloat(dm[1]); dec = dm[1].includes("."); rest = s.slice(s.indexOf(dm[1])+dm[1].length); }
+  else{
+    let t = s.split(" "); if(t.includes("полтора")||t.includes("полторы")){ n = 1.5; dec = true; rest = ""; }
+    else{ let ui = t.findIndex(w=>/^(мм|миллиметр|см|сантиметр|метр|м$)/.test(w)); const num = ui<0 ? t : t.slice(0,ui); rest = ui<0 ? "" : t.slice(ui).join(" ");
+      const sepI = num.findIndex(w=>/^(целых|целая|целое|целый|точка|запятая)$/.test(w)), andI = num.indexOf("и");
+      const unitDen = num.find(w=>/^(десят|сот|тысячн)/.test(w));
+      if(sepI>=0 || (andI>0 && unitDen)){ const i = sepI>=0 ? sepI : andI, L = wordsToInt(num.slice(0,i)), rw = num.slice(i+1).filter(w=>!/^(десят|сот|тысячн)/.test(w));
+        if(L!=null){ let fr = null; if(unitDen){ const v = wordsToInt(rw); if(v!=null) fr = v/Math.pow(10, /^десят/.test(unitDen)?1:/^сот/.test(unitDen)?2:3); }
+          else if(rw.every(w=>w in NUM && NUM[w]<10)) fr = parseFloat("0."+rw.map(w=>NUM[w]).join("")); else { const v = wordsToInt(rw); if(v!=null) fr = parseFloat("0."+v); }
+          if(fr!=null){ n = L+fr; dec = true; } } }
+      else if(num.length>1 && (num[0]==="ноль"||num[0]==="нуль")){ const rw = num.slice(1); let ds = rw.every(w=>w in NUM && NUM[w]<10) ? rw.map(w=>NUM[w]).join("") : String(wordsToInt(rw)); if(ds && ds!=="null"){ n = parseFloat("0."+ds); dec = true; } }
+      else if(num.length>=2 && NUM[num[0]]>=1 && NUM[num[0]]<=9 && !num.some(w=>/^тысяч/.test(w)) && !/^сто|^двест|^трист|^четырест|^пятьсот|^шестьсот|^семьсот|^восемьсот|^девятьсот/.test(num[1])){
+        const rw = num.slice(1), ds = rw.every(w=>w in NUM && NUM[w]<10) ? rw.map(w=>NUM[w]).join("") : (wordsToInt(rw)!=null && wordsToInt(rw)<100 ? String(wordsToInt(rw)) : null);
+        if(ds){ n = parseFloat(NUM[num[0]]+"."+ds); dec = true; } else n = wordsToInt(num); }
+      else{ n = wordsToInt(num); } } }
+  if(n==null || !isFinite(n)) return null;
+  const um = (rest+" ").match(/^\s*(мм|миллиметр\S*|см|сантиметр\S*|метр\S*|м)\s/);
+  let u = um ? (/^(мм|миллим)/.test(um[1])?"mm":/^(см|сантим)/.test(um[1])?"cm":"m") : null, v = n, note = "";
+  if(unit==="м"){ if(u==="mm") v = n/1000; else if(u==="cm") v = n/100; else if(!u && !dec && n>=10){ v = n/100; note = "сантиметры"; } }
+  else if(unit==="мм"){ if(u==="m") v = n*1000; else if(u==="cm") v = n*10; else if(!u && (dec||n<10) && n<10){ v = n*1000; note = "метры"; } }
+  v = Math.round(v*10000)/10000; return {value:v, note, heard:text}; }
+function speechAvailable(){ return isNative || !!(window.SpeechRecognition||window.webkitSpeechRecognition); }
+function listenOnce(){ return new Promise((res,rej)=>{
+  if(isNative){ nCall("Dictation","listen",{lang:"ru-RU"}).then(r=>res((r&&r.matches)||[]), e=>rej(e)); return; }
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return rej(new Error("no"));
+  const r = new SR(); r.lang = "ru-RU"; r.maxAlternatives = 5; r.onresult = e=>res([...e.results[0]].map(x=>x.transcript)); r.onerror = e=>rej(new Error(e.error)); r.onend = ()=>res([]); r.start(); }); }
+async function dictate(unit, input, say){
+  say("Слушаю…");
+  let list = []; try{ list = await listenOnce(); }catch(e){ const m = String((e&&e.message)||e); say(/not.*implemented|unavailable|no_recognizer|UNIMPLEMENTED/i.test(m) ? "Голосовой ввод недоступен на этом телефоне." : "Не получилось записать голос."); return; }
+  if(!list.length){ say("Ничего не услышал. Нажмите ещё раз."); return; }
+  for(const t of list){ const p = parseSpoken(t, unit); if(p){ input.value = String(p.value).replace(".",","); input.dispatchEvent(new Event("input",{bubbles:true}));
+    say(`Услышал: «${t}» → ${fmt(p.value)} ${unit}${p.note?" ("+p.note+")":""}. Проверьте число.`); return; } }
+  say(`Услышал: «${list[0]}». Число не разобрал, введите вручную.`); }
+
+/* ==== РАСЧЁТЫ (пандус, уклономер, парковка) ==== */
+function renderTools(){
+  tiltLoad();
+  const slopeRules = allRules().filter(r=>r.unit==="‰");
+  app.innerHTML = `<div class="card"><h2 style="margin-top:0">Калькулятор уклона пандуса</h2>
+   <label for="rh">Перепад высот, мм</label><input id="rh" type="text" inputmode="decimal" placeholder="например 450">
+   <label for="rl">Длина пандуса по горизонтали, мм</label><input id="rl" type="text" inputmode="decimal" placeholder="например 9000">
+   <div id="rout"></div>
+   <p class="muted">Длина одного марша (СП 59.13330.2020, п. 5.1.14, табл. 5.1): до 40‰ — 15 м, 40–50‰ — 12 м, 50–60‰ — 9 м, 61–80‰ — 6 м. Уклон больше 80‰ — только в стеснённых условиях, до 100‰ при длине наклонной плоскости до 5 м и с сопровождающим (прим. 2 к табл. 5.1). Сверено с текстом СП.</p></div>
+   <div class="card"><h2 style="margin-top:0">Уклономер: телефон как уровень</h2>
+   <p class="muted">Положите телефон экраном вверх на пандус или тротуар. Длинной стороной вдоль движения: «вдоль» — продольный уклон, «поперёк» — поперечный. Точность после калибровки примерно ±5‰, поэтому у самой границы нормы проверьте рулеткой.</p>
+   <div id="tiltval"><p class="muted">Жду датчик…</p></div>
+   <label for="tpar">Записать в замер как</label><select id="tpar">${slopeRules.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}</select>
+   <div class="row" style="margin-top:8px"><button id="talong" type="button">Вдоль → в замер</button><button id="tcross" type="button">Поперёк → в замер</button></div>
+   <details style="margin-top:10px"><summary>Калибровка (1 минута, один раз)</summary><p class="muted">1) Положите телефон на заведомо ровное место (стол, пол) и нажмите «Шаг 1». 2) Не сдвигая место, поверните телефон на 180° и нажмите «Шаг 2».</p>
+   <div class="row"><button id="tcal1" type="button" class="small">Шаг 1</button><button id="tcal2" type="button" class="small" disabled>Шаг 2</button></div></details></div>
+   <div class="card"><h2 style="margin-top:0">Парковка для инвалидов: сколько мест нужно</h2>
+   <label for="pn">Всего мест на стоянке</label><input id="pn" type="text" inputmode="numeric" placeholder="например 120">
+   <label for="pm">Сколько мест для инвалидов сейчас (необязательно)</label><input id="pm" type="text" inputmode="numeric">
+   <div id="pout"></div><p class="muted">СП 59.13330.2020, п. 5.2.1: не менее 10% мест (но не менее одного) для людей с инвалидностью; из них специализированных (6,0 × 3,6 м, для колясочников) — до 100 мест 5%, 101–200: 5 + 3% свыше 100, 201–500: 8 + 2% свыше 200, от 501: 14 + 1% свыше 500. Округление вверх.</p></div>`;
+  const h = byId("rh"), l = byId("rl"), out = byId("rout");
+  const upd = ()=>{ const hh = num(h.value), ll = num(l.value); if(hh==null||ll==null||ll<=0){ out.innerHTML=""; return; }
+    const pm = hh/ll*1000; const maxLen = pm<=40?15:pm<=50?12:pm<=60?9:pm<=80?6:null; let a, k;
+    if(pm>100){ a = "Уклон выше 100‰ — не соответствует."; k="bad"; }
+    else if(pm>80 && ll>5000){ a = "Выше 80‰ допускается только при длине наклонной плоскости до 5 м, а здесь "+fmt((ll/1000).toFixed(1))+" м — не соответствует."; k="bad"; }
+    else if(pm>80){ a = "Выше 80‰: допустимо только в стеснённых условиях, длина до 5 м, передвижение с сопровождающим (до 100‰)."; k="relax"; }
+    else if(ll/1000<=maxLen){ a = "Уклон и длина марша в пределах нормы."; k="ok"; }
+    else { a = "Марш длиннее допустимого ("+fmt(maxLen)+" м): нужна промежуточная площадка."; k="bad"; }
+    out.innerHTML = `<div class="result ${k}">${esc(a)}<small>Уклон ${fmt(pm.toFixed(1))}‰ (${fmt((pm/10).toFixed(1))} %), 1:${fmt((ll/hh).toFixed(1))}${maxLen?`, макс. длина марша ${fmt(maxLen)} м`:""}</small></div>`; };
+  h.oninput = upd; l.oninput = upd;
+  const pn = byId("pn"), pm = byId("pm"), po = byId("pout");
+  const pupd = ()=>{ const n = parseInt(pn.value,10); if(!(n>0)){ po.innerHTML=""; return; } const need = parkNeed(n), m = parseInt(pm.value,10);
+    po.innerHTML = `<div class="result ok">Нужно: ${need.all} мест для инвалидов, из них специализированных (6,0 × 3,6 м) — ${need.spec}${isFinite(m)?`<small>${m>=need.spec?"Специализированных достаточно":"Не хватает специализированных: "+(need.spec-m)}</small>`:""}</div>`; };
+  pn.oninput = pupd; pm.oninput = pupd;
+  byId("tcal1").onclick = ()=>tiltCalStep(1); byId("tcal2").onclick = ()=>tiltCalStep(2);
+  byId("talong").onclick = ()=>tiltToMeasure("along"); byId("tcross").onclick = ()=>tiltToMeasure("cross");
+  tiltStart();
+}
+
+/* ==== ЕЩЁ ==== */
+function renderMore(){
+  const ver = (byId("appver")||{}).textContent || "";
+  app.innerHTML = `<div class="card"><h2 style="margin-top:0">Ещё</h2><div class="menu">
+    <button type="button" data-go="export">Экспорт и отчёты</button><button type="button" data-go="stats">Сводка</button><button type="button" data-go="norms">Нормы (справка)</button></div></div>
+    <div class="card"><label for="aname">Ваше имя в отчётах</label><input id="aname" type="text" autocomplete="off" value="${esc(db.settings.author||"")}" placeholder="Например: Витя"><p class="muted">${esc(ver)}</p></div>`;
+  app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ tab = b.dataset.go; render(); window.scrollTo(0,0); });
+  byId("aname").oninput = e=>{ db.settings.author = e.target.value.trim(); save(); };
+}
+
+/* ==== СПРАВКА ОБ ОБЪЕКТЕ (основа паспорта доступности) ==== */
+const REPORT_CSS = `body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;max-width:860px;margin:0 auto;padding:16px;color:#14213d;line-height:1.4}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:20px;margin:20px 0 6px}h3{margin:0 0 6px;font-size:18px}.muted{color:#5b6678}
+section{border:1px solid #d5dbe6;border-radius:12px;padding:12px 14px;margin:12px 0;break-inside:avoid}
+table{border-collapse:collapse;width:100%;font-size:15px}th{text-align:left;vertical-align:top;color:#5b6678;font-weight:600;padding:4px 8px 4px 0;width:34%}td{padding:4px 0}
+.zt th,.zt td{border-bottom:1px solid #e3e7ef;padding:6px 8px 6px 0;width:auto}.zt th{color:#14213d}
+.res{display:inline-block;margin:0 0 8px;padding:3px 10px;border-radius:999px;font-weight:700}.ok{background:#d8f3dc;color:#1b5e20}.bad{background:#ffd9d9;color:#9b1c1c}.relax,.old{background:#fff0c2;color:#7a5200}.nonorm{background:#e5e7eb;color:#374151}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:10px}.ph img,figure img{width:100%;border-radius:8px;display:block}figure{margin:0}figcaption{font-size:13px;color:#5b6678}
+a{color:#1F3864}@media print{body{padding:0}a{color:inherit;text-decoration:none}}`;
+function zoneStatus(c){ const n = (c.good||0)+(c.cond||0)+(c.old||0)+(c.bad||0); if(!n) return ["Не обследовано","nonorm"]; if(c.bad) return ["Выявлены нарушения","bad"]; if(c.cond||c.old) return ["Доступно условно или ниже современной нормы","relax"]; return ["Соответствует по обследованным параметрам","ok"]; }
+async function buildPassport(objId){
+  const o = db.objects.find(x=>x.id===objId); if(!o) return "";
+  const rows = exportRows(objId), dt = t=>new Date(t).toLocaleDateString("ru-RU");
+  const zones = routeGroups(o).map(g=>{ const rs = rows.filter(({v})=>v.ru.group===g), c = {}; rs.forEach(({v})=>{ const k = kindOf(v.k); c[k] = (c[k]||0)+1; }); return {g, rs, c}; })
+    .concat(Object.values(rows.reduce((m,x)=>{ const g = x.v.ru.group; if(!routeGroups(o).includes(g)){ (m[g] = m[g]||{g, rs:[], c:{}}).rs.push(x); const k = kindOf(x.v.k); m[g].c[k] = (m[g].c[k]||0)+1; } return m; },{})));
+  const bad = rows.filter(({v})=>["bad","bad2","old","relax"].includes(v.k));
+  const ds = rows.map(x=>x.r.ts), d1 = ds.length?Math.min(...ds):Date.now(), d2 = ds.length?Math.max(...ds):Date.now();
+  const zt = zones.map(z=>{ const [t,c] = zoneStatus(z.c); return `<tr><th>${esc(z.g)}</th><td>${z.rs.length?z.rs.length+" замеров":"—"}</td><td><span class="res ${c}" style="margin:0">${t}</span></td></tr>`; }).join("");
+  let viol = ""; let i = 0;
+  for(const {r,v} of bad){ i++; const ru = v.ru; let ph = ""; const s = ensureSlots(r);
+    for(const [k,cap] of [...SLOTS, ...(r.extra||[]).map((id,j)=>["x"+j,"Фото"])]){ const id = k[0]==="x" ? r.extra[+k.slice(1)] : s[k]; if(!id) continue; const b = await getPhoto(id), d = b && await blobToDataURL(b); if(d) ph += `<figure><img src="${d}" alt="${cap}"><figcaption>${cap}</figcaption></figure>`; }
+    viol += `<section><h3>${i}. ${esc(ru.name)}</h3><p class="res ${RES[v.k][1]}">${RES[v.k][0]}</p><table>
+      <tr><th>Факт / требуется</th><td>${fmt(r.value)} ${esc(ru.unit)} / ${esc(normText(ru))}</td></tr><tr><th>Основание</th><td>${esc(ru.clause)}, ${esc(ru.doc)}</td></tr>
+      ${r.exp?`<tr><th>Опыт эксперта</th><td>${esc(r.exp)}</td></tr>`:""}${r.fix?`<tr><th>Что сделать</th><td>${esc(r.fix)}</td></tr>`:""}${r.comment?`<tr><th>Комментарий</th><td>${esc(r.comment)}</td></tr>`:""}</table>${ph?`<div class="ph">${ph}</div>`:""}</section>`; }
+  const docs = [...new Set(rows.map(x=>x.v.ru.doc).filter(Boolean))];
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(o.name)} — справка о доступности</title><style>${REPORT_CSS}</style></head><body>
+<p class="muted">Мастерская Горыныча: Экспертиза на колёсах · Новосибирск</p><h1>Справка о доступности объекта</h1>
+<p class="muted">Основа для паспорта доступности. Это не официальная форма: данные переносятся в форму, утверждённую действующим приказом.</p>
+<h2>1. Общие сведения</h2><table><tr><th>Объект</th><td>${esc(o.name)}</td></tr><tr><th>Адрес</th><td>${esc(o.address||"—")}${o.geo?` · <a href="${mapLink(o.geo)}">${geoTxt(o.geo)}</a>`:""}</td></tr>
+<tr><th>Вид объекта</th><td>${esc(OTYPES[o.type||"other"])}</td></tr><tr><th>Здание</th><td>${esc(BST[o.bstatus]||"—")}</td></tr>
+<tr><th>Обследование</th><td>№${rnd(o)}, ${dt(d1)}${d2-d1>DAY?" — "+dt(d2):""}</td></tr>${db.settings.author?`<tr><th>Обследовал</th><td>${esc(db.settings.author)}</td></tr>`:""}</table>
+<h2>2. Состояние доступности по зонам</h2><table class="zt">${zt}</table>
+<h2>3. Выявленные несоответствия (${bad.length})</h2>${viol||"<p>Несоответствий не выявлено.</p>"}
+<h2>4. Нормативная база</h2><p>${esc(docs.join("; ")||"—")}. Справка норм: ${esc(NORMS_VERSION)}.</p>
+<p class="muted">Результат — рабочая подсказка, а не юридическое заключение. Значения норм со статусом «требует сверки» нужно проверить по полному тексту.</p>
+<p>Дата: ${dt(Date.now())} ${db.settings.author?" · "+esc(db.settings.author):""}</p></body></html>`;
+}
 
 load();
 openIDB().then(render);
