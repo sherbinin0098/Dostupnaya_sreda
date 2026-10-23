@@ -1173,8 +1173,9 @@ function objForm(o){
     if(o) Object.assign(o,data); else { const n = Object.assign({id:uid(), round:1, rounds:[{n:1,ts:Date.now()}]},data); db.objects.push(n); db.currentObj = n.id; }
     save(); renderMeasure();
   };
-  const d = document.getElementById("odel"); if(d) d.onclick = ()=>{ if(!confirm("Удалить объект и все его замеры?")) return;
-    db.records.filter(r=>r.objId===o.id).forEach(r=>r.photos.forEach(delPhoto));
+  const d = document.getElementById("odel"); if(d) d.onclick = ()=>{ const na = (db.appeals||[]).filter(a=>a.objId===o.id).length; if(!confirm("Удалить объект и все его замеры"+(na?" и обращения ("+na+")":"")+"?")) return;
+    db.appeals = (db.appeals||[]).filter(a=>a.objId!==o.id);
+    db.records.filter(r=>r.objId===o.id).forEach(r=>(r.photos||[]).forEach(forgetPhoto));
     db.records = db.records.filter(r=>r.objId!==o.id); db.objects = db.objects.filter(x=>x.id!==o.id);
     if(db.currentObj===o.id) db.currentObj = null; save(); renderMeasure(); };
 }
