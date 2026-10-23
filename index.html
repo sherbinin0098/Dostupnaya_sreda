@@ -1061,7 +1061,6 @@ function objForm(o){
     <div class="row" style="margin-top:6px"><button type="button" class="small" id="ohere">📍 Я здесь</button><button type="button" class="small" id="omap">На карте</button></div>
     <label for="oe">Строительство или реконструкция завершены позже 1 июля 2016 года?</label>
     <select id="oe">${[["new","Да — новое строительство"],["recon","Да — реконструкция"],["old","Нет — раньше, с тех пор не реконструировалось"],["unknown","Не знаю (уточню)"]].map(([k,t])=>`<option value="${k}" ${((o?o.bstatus:"unknown")===k)?"selected":""}>${t}</option>`).join("")}</select>
-    <p class="muted">От этого зависит, какие нормы обязательны: после 01.07.2016 — современные; для старых зданий отклонение не считается нарушением размеров.</p>
     <div class="row"><button class="primary" id="osave">Сохранить</button><button id="ocancel">Отмена</button></div>
     ${o?`<div style="margin-top:12px"><button class="danger small" id="odel">Удалить объект и его замеры</button></div>`:""}</div>`;
   let fg = o ? (o.geo||null) : null;
