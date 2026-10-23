@@ -106,7 +106,7 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
 .rskip{flex:0 0 auto;font-size:14px;min-height:48px}
 .menu{display:grid;gap:10px}.inline{display:flex;gap:8px;align-items:stretch}.inline input{flex:1 1 auto}.mic{flex:0 0 64px;min-height:52px;padding:0;font-size:24px}
 .sbar{width:100%;height:14px;border-radius:6px;display:block;background:var(--line)}.srow{margin-top:10px}.lgs{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:14px}.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.tilt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}.tilt>div{display:flex;flex-direction:column;border:2px solid var(--line);border-radius:12px;padding:10px}.tilt b{font-size:34px;line-height:1.1}
+.tilt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}.tilt>div{display:flex;flex-direction:column;border:2px solid var(--line);border-radius:12px;padding:10px}.tilt b{font-size:34px;line-height:1.1}.tilt .dir{font-weight:700;margin-top:4px}
 .heard{font-size:15px;margin:6px 0 0}
 
 html.big1 body,html.big1{font-size:20px}html.big1 button,html.big1 select,html.big1 input[type=text],html.big1 input[type=number],html.big1 input[type=search],html.big1 input[type=date]{min-height:64px}html.big1 button.small{min-height:56px}html.big1 nav button{min-height:80px;font-size:15px}html.big1 .tile{height:130px}
@@ -2554,7 +2554,11 @@ function tiltAngles(g){ const z = Math.abs(g.z)||1e-6; return {a:Math.atan2(g.y,
 function tiltRaw(){ const b = tilt.buf; if(b.length<5) return null; const m = k=>b.reduce((s,x)=>s+x[k],0)/b.length;
   const ma = m("a"), mc = m("c"), sd = Math.sqrt(b.reduce((s,x)=>s+(x.a-ma)**2,0)/b.length); return {a:ma, c:mc, sd}; }
 function tiltCur(){ const r = tiltRaw(); if(!r) return null; const pm = rad=>Math.round(Math.tan(rad)*10000)/10;
-  return {along:pm(Math.abs(r.a-tilt.cal.a)), cross:pm(Math.abs(r.c-tilt.cal.c)), still:r.sd<0.004}; }
+  const sa = pm(r.a-tilt.cal.a), sc = pm(r.c-tilt.cal.c);
+  return {along:Math.abs(sa), cross:Math.abs(sc), sa, sc, still:r.sd<0.004}; }
+// направление: + значит верх (камера) телефона выше низа / правый край выше левого
+function dirAlong(sa){ return Math.abs(sa)<5 ? "ровно" : sa>0 ? "↑ вперёд (к верху телефона) подъём" : "↓ вперёд (к верху телефона) спуск"; }
+function dirCross(sc){ return Math.abs(sc)<5 ? "ровно" : sc>0 ? "→ справа выше, слева ниже" : "← слева выше, справа ниже"; }
 function tiltOnMotion(e){ const g = e.accelerationIncludingGravity; if(!g||g.x==null||g.y==null||g.z==null) return; tilt.got = true;
   tilt.buf.push(tiltAngles(g)); if(tilt.buf.length>30) tilt.buf.shift(); }
 function tiltStart(){ if(tilt.on) return; tilt.on = true; tilt.buf = []; tilt.got = false; window.addEventListener("devicemotion", tiltOnMotion);
@@ -2562,8 +2566,8 @@ function tiltStart(){ if(tilt.on) return; tilt.on = true; tilt.buf = []; tilt.go
 function tiltStop(){ if(!tilt.on) return; tilt.on = false; window.removeEventListener("devicemotion", tiltOnMotion); clearInterval(tilt.h); }
 const ratioTxt = pm => pm>0 ? "1:"+fmt((1000/pm).toFixed(1)) : "—";
 function tiltDraw(){ const el = byId("tiltval"), c = tiltCur(); if(!el||!c) return;
-  el.innerHTML = `<div class="tilt"><div><span class="muted">Вдоль телефона</span><b>${fmt(c.along.toFixed(0))}‰</b><span class="muted">${ratioTxt(c.along)} · ${fmt((c.along/10).toFixed(1))} %</span></div>
-    <div><span class="muted">Поперёк телефона</span><b>${fmt(c.cross.toFixed(0))}‰</b><span class="muted">${ratioTxt(c.cross)} · ${fmt((c.cross/10).toFixed(1))} %</span></div></div>
+  el.innerHTML = `<div class="tilt"><div><span class="muted">Вдоль телефона</span><b>${fmt(c.along.toFixed(0))}‰</b><span class="muted">${ratioTxt(c.along)} · ${fmt((c.along/10).toFixed(1))} %</span><span class="dir">${dirAlong(c.sa)}</span></div>
+    <div><span class="muted">Поперёк телефона</span><b>${fmt(c.cross.toFixed(0))}‰</b><span class="muted">${ratioTxt(c.cross)} · ${fmt((c.cross/10).toFixed(1))} %</span><span class="dir">${dirCross(c.sc)}</span></div></div>
     <p class="muted" style="margin:6px 0 0">${c.still?"Держится ровно, можно записывать.":"Телефон двигается, подождите."}</p>`; }
 function tiltCalStep(n){ const r = tiltRaw(); if(!r){ toast("Датчик ещё не ответил"); return; }
   if(n===1){ tilt.c1 = {a:r.a, c:r.c}; toast("Запомнено. Теперь поверните на 180°"); byId("tcal2").disabled = false; return; }
@@ -2571,7 +2575,7 @@ function tiltCalStep(n){ const r = tiltRaw(); if(!r){ toast("Датчик ещё
   tilt.cal = {a:(tilt.c1.a+r.a)/2, c:(tilt.c1.c+r.c)/2}; tilt.c1 = null; tiltSave(); toast("Калибровка сохранена"); byId("tcal2").disabled = true; }
 function tiltToMeasure(which){ const c = tiltCur(), o = curObj(); if(!c) return; if(!o){ toast("Сначала выберите объект на вкладке «Замер»"); return; }
   const r = rule(byId("tpar").value); if(!r) return; const v = which==="along" ? c.along : c.cross;
-  draft.group = r.group; draft.ruleId = r.id; draft.value = String(Math.round(v)); draft.cond = null; draft.comment = "Замер уклономером телефона, ориентировочно"; tab = "measure"; focusVal = true; render(); }
+  draft.group = r.group; draft.ruleId = r.id; draft.value = String(Math.round(v)); draft.cond = null; draft.comment = "Замер уклономером телефона, ориентировочно: "+(which==="along" ? "вдоль, "+dirAlong(c.sa).replace(/^[^ ]+ /,"") : "поперёк, "+dirCross(c.sc).replace(/^[^ ]+ /,""))+" (верх телефона направлен по ходу движения)"; tab = "measure"; focusVal = true; render(); }
 
 /* ==== ГОЛОС: диктовка значения ==== */
 const NUM = {ноль:0,нуль:0,один:1,одна:1,одно:1,два:2,две:2,три:3,четыре:4,пять:5,шесть:6,семь:7,восемь:8,девять:9,десять:10,одиннадцать:11,двенадцать:12,тринадцать:13,четырнадцать:14,пятнадцать:15,шестнадцать:16,семнадцать:17,восемнадцать:18,девятнадцать:19,
@@ -2633,7 +2637,7 @@ function renderTools(){
    <div id="rout"></div>
    <p class="muted">Длина одного марша (СП 59.13330.2020, п. 5.1.14, табл. 5.1): до 40‰ — 15 м, 40–50‰ — 12 м, 50–60‰ — 9 м, 61–80‰ — 6 м. Уклон больше 80‰ — только в стеснённых условиях, до 100‰ при длине наклонной плоскости до 5 м и с сопровождающим (прим. 2 к табл. 5.1). Сверено с текстом СП.</p></div>
    <div class="card"><h2 style="margin-top:0">Уклономер: телефон как уровень</h2>
-   <p class="muted">Положите телефон экраном вверх на пандус или тротуар. Длинной стороной вдоль движения: «вдоль» — продольный уклон, «поперёк» — поперечный. Точность после калибровки примерно ±5‰, поэтому у самой границы нормы проверьте рулеткой.</p>
+   <p class="muted">Положите телефон экраном вверх на пандус или тротуар. Верх телефона (где камера) направьте по ходу движения: «вдоль» — продольный уклон, «поперёк» — поперечный. Стрелка показывает, куда поднимается поверхность: «↑ подъём» — впереди выше, «↓ спуск» — впереди ниже, «→» — справа выше, «←» — слева выше. Точность после калибровки примерно ±5‰, поэтому у самой границы нормы проверьте рулеткой.</p>
    <div id="tiltval"><p class="muted">Жду датчик…</p></div>
    <label for="tpar">Записать в замер как</label><select id="tpar">${slopeRules.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}</select>
    <div class="row" style="margin-top:8px"><button id="talong" type="button">Вдоль → в замер</button><button id="tcross" type="button">Поперёк → в замер</button></div>
