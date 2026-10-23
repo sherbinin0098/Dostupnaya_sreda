@@ -121,6 +121,9 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
 
 <script>
 "use strict";
+// если что-то сломается при запуске — показать ошибку, а не пустой экран
+window.addEventListener("error", e=>{ const a = document.getElementById("app"); if(a && !a.textContent.trim())
+  a.innerHTML = `<div class="card"><b>Приложение не запустилось.</b><p class="muted">${String(e.message||e.error||"ошибка").replace(/[<>&]/g,"")}</p><p class="muted">Сделайте снимок экрана и отправьте разработчику.</p></div>`; });
 /* ==== НОРМЫ (справка). Правятся здесь или во вкладке «Нормы» на телефоне ==== */
 const NORMS_VERSION = "справка от 23.10.2026: СП 59.13330.2020 (изм. 1–4), СП 140.13330.2024, ГОСТ Р 51261-2025, ГОСТ 33652-2019";
 const RULES = [
@@ -846,9 +849,11 @@ const bRelax = o => !!o && (o.bstatus==="recon" || o.bstatus==="unknown");
 
 /* ==== Android-обёртка (Capacitor): отправка файлов через системное меню ==== */
 const CAP = window.Capacitor;
-const isNative = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
-const NShare = isNative ? CAP.registerPlugin("Share") : null;
-const NFs = isNative ? CAP.registerPlugin("Filesystem") : null;
+const isNative = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform() && typeof CAP.nativePromise==="function");
+// Библиотеки @capacitor/core в приложении нет (registerPlugin берётся из неё), поэтому плагины зовём через мост напрямую
+const nCall = (plugin, method, opts)=>CAP.nativePromise(plugin, method, opts||{});
+const NShare = isNative ? { share:o=>nCall("Share","share",o) } : null;
+const NFs = isNative ? { writeFile:o=>nCall("Filesystem","writeFile",o) } : null;
 function blobToB64(blob){ return new Promise(res=>{ const r = new FileReader(); r.onload = ()=>res(String(r.result).split(",")[1]); r.readAsDataURL(blob); }); }
 async function nativeShareBlob(name, blob){
   const data = await blobToB64(blob);
