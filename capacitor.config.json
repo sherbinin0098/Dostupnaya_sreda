@@ -1,0 +1,6 @@
+{
+  "appId": "ru.gorynych.dostupnost",
+  "appName": "Горыныч: доступность",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
