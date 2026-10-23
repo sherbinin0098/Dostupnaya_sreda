@@ -35,6 +35,8 @@ Android-приложение проекта «Мастерская Горыны�
 
 Нормы лежат в `index.html` в массиве `RULES`; дата справки в `NORMS_VERSION`.
 
+Иконка: исходник `icon.png`, готовые картинки для Android лежат в `android-res/`. Если меняете иконку — замените `icon.png` и выполните `bash tools/make-icons.sh` (нужен ImageMagick).
+
 Пробную сборку с другой ветки можно запустить вручную (Actions → «Сборка APK» → Run workflow): она попадёт только в Artifacts, в Releases — нет.
 
 ## Ключи подписи (секреты GitHub)
