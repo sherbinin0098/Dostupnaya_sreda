@@ -31,6 +31,9 @@ jobs:
         run: |
           mkdir -p www
           cp index.html www/index.html
+          # номер сборки в шапке — виден, даже если код не запустился
+          sed -i "s/Версия: разработка/Версия 1.${{ github.run_number }}/" www/index.html
+          grep -c "Версия 1.${{ github.run_number }}" www/index.html
 
       - name: Установка зависимостей
         run: npm install --no-audit --no-fund
