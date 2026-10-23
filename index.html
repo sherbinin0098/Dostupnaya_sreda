@@ -57,6 +57,48 @@ nav button[aria-current=true]{color:var(--brand);box-shadow:inset 0 3px 0 var(--
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 .overlay img{max-width:100%;max-height:75vh;border-radius:8px}
 pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;max-height:50vh;overflow:auto}
+
+header{padding-top:calc(14px + env(safe-area-inset-top))}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
+.btnlike{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;min-height:56px;padding:12px 16px;border-radius:14px;border:2px solid var(--brand);background:var(--card);color:var(--ink);font-weight:700;cursor:pointer;margin:0}
+.btnlike.small{min-height:44px;padding:8px 12px;font-size:16px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:108px;min-height:0;margin:0;padding:4px;border:2px dashed var(--line);border-radius:12px;background:var(--bg);color:var(--ink);cursor:pointer;overflow:hidden;text-align:center;font-weight:600}
+.tile .plus{font-size:30px;line-height:1;color:var(--brand);font-weight:300}
+.tile .tl{font-size:13px;line-height:1.2}
+.tile.has{border-style:solid;padding:0}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile .tcap{position:absolute;left:0;right:0;top:0;padding:4px 6px 14px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(#000000b0,transparent);text-align:left}
+.chk{display:flex;align-items:center;gap:10px;font-weight:400;font-size:16px;margin-top:10px}
+.chk input{width:24px;height:24px;margin:0;flex:0 0 auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{min-height:40px;padding:6px 12px;border-radius:999px;font-size:15px;font-weight:600;border:2px solid var(--line)}
+.geo{font-size:15px;margin-top:6px}
+.geo a{color:var(--brand);font-weight:600}
+.aclist{display:flex;flex-direction:column;border:2px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;margin-top:6px;box-shadow:0 6px 18px #0000001f}
+.aci{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:10px 12px;cursor:pointer;min-height:52px;justify-content:center}
+.aci+.aci{border-top:1px solid var(--line)}
+.aci:active,.aci:focus-visible{background:var(--bg)}
+.acn{font-size:17px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acs{font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acwait{padding:10px 12px;white-space:normal}
+.ach{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 12px 5px;background:var(--bg)}
+.mapx{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
+.mapbar{padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--card);border-bottom:1px solid var(--line)}
+.maphint{margin:0;font-size:14px;color:var(--muted)}
+.mapaddr{margin:2px 0 0;font-size:17px;font-weight:700;min-height:1.4em}
+.mapwrap{position:relative;flex:1 1 auto;min-height:0}
+#map,#map2{position:absolute;inset:0;background:#e9eef3}
+.pin{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);z-index:500;pointer-events:none;display:flex;flex-direction:column;align-items:center}
+.pin svg{display:block;filter:drop-shadow(0 2px 2px #00000040)}
+@media (prefers-reduced-motion:no-preference){.pin svg{transition:transform .15s}}
+.pin.up svg{transform:translateY(-10px)}
+.pin .shadow{position:absolute;bottom:-3px;width:10px;height:4px;border-radius:50%;background:#00000055}
+.mapbtns{display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}
+.mapbtns button{flex:1 1 0;padding:12px 6px}
+.overlay img{max-height:60vh}
+.vcap{color:#fff;font-weight:700;font-size:18px}
 </style>
 </head>
 <body>
@@ -66,6 +108,16 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px s
 </header>
 <main id="app"></main>
 <nav id="nav" aria-label="Разделы"></nav>
+<div class="mapx" id="mapx" hidden role="dialog" aria-label="Выбор места на карте">
+  <div class="mapbar"><p class="maphint">Двигайте карту, чтобы метка встала на место</p><p class="mapaddr" id="mapAddr"></p></div>
+  <div class="mapwrap"><div id="map"></div><div class="pin" id="pin" aria-hidden="true"><svg viewBox="0 0 32 44" width="40" height="55"><path d="M16 0C7.2 0 0 7 0 15.7 0 27.5 16 44 16 44s16-16.5 16-28.3C32 7 24.8 0 16 0z" fill="#c0352b"/><circle cx="16" cy="15.5" r="6.5" fill="#ffffff"/></svg><span class="shadow"></span></div></div>
+  <div class="mapbtns"><button type="button" id="mapMe">Я здесь</button><button type="button" id="mapCancel">Отмена</button><button type="button" class="primary" id="mapOk">Готово</button></div>
+</div>
+<div class="mapx" id="mapall" hidden role="dialog" aria-label="Замеры на карте">
+  <div class="mapbar"><p class="mapaddr" id="allCount"></p><p class="maphint">Зелёный — соответствует, красный — нет, жёлтый — при условии или до 2016 года, серый — нет нормы</p></div>
+  <div class="mapwrap"><div id="map2"></div></div>
+  <div class="mapbtns"><button type="button" class="primary" id="allClose">Закрыть</button></div>
+</div>
 
 <script>
 "use strict";
@@ -249,7 +301,7 @@ const RULES = [
 "clause": "п. 5.1.14, табл. 5.1",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "80‰ = 1:12,5. До 100‰ только в стеснённых условиях при длине наклонной плоскости до 5 м и с сопровождающим. Допустимая длина марша зависит от уклона — см. лист «Калькулятор».",
+"note": "80‰ = 1:12,5. До 100‰ только в стеснённых условиях при длине наклонной плоскости до 5 м и с сопровождающим. Допустимая длина марша зависит от уклона — см. вкладку «Пандус».",
 "cond": "Стеснённые условия, длина наклонной плоскости не более 5 м, по пандусу помогает сопровождающее лицо (п. 5.1.14)."
 },
 {
@@ -806,14 +858,15 @@ async function nativeShareBlob(name, blob){
 
 /* ==== ХРАНИЛИЩЕ ==== */
 const KEY = "gorynych_dostup_v1";
-let db = { objects: [], records: [], overrides: {}, currentObj: null };
+let db = { objects: [], records: [], overrides: {}, currentObj: null, settings: {stamp:true} };
 function load(){ try{ const s = localStorage.getItem(KEY); if(s) db = Object.assign(db, JSON.parse(s)); }catch(e){}
-  db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; o.year = o.year||""; } }); }
+  db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; o.year = o.year||""; } });
+  db.settings = Object.assign({stamp:true}, db.settings||{}); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert("Не удалось сохранить: память браузера недоступна."); } }
 
 /* Фото в IndexedDB */
 let idb = null;
-function openIDB(){ return new Promise((res)=>{ try{ const r = indexedDB.open("gorynych_photos",1);
+function openIDB(){ return new Promise((res)=>{ setTimeout(res, 4000); try{ const r = indexedDB.open("gorynych_photos",1);
   r.onupgradeneeded = ()=>r.result.createObjectStore("p");
   r.onsuccess = ()=>{ idb=r.result; res(); }; r.onerror = ()=>res(); }catch(e){ res(); } }); }
 function putPhoto(id, blob){ return new Promise((res)=>{ if(!idb) return res(false);
@@ -883,10 +936,32 @@ function resultBox(k0, r, v, o, cond){
 
 /* ==== СОСТОЯНИЕ UI ==== */
 let tab = "measure";
-let draft = { group:"", ruleId:"", value:"", comment:"", photos:[], cond:null };
+function newDraft(group){ return { group, ruleId:"", value:"", comment:"", exp:"", fix:"", slots:{}, geo:null, place:"", cond:null }; }
+let draft = newDraft("");
 let logFilter = "all";
 const app = document.getElementById("app");
 const TABS = [["measure","Замер"],["log","Журнал"],["ramp","Пандус"],["export","Экспорт"],["norms","Нормы"]];
+
+
+/* Подсказки «что реально сделать» — типовые решения, человек выбирает и дописывает */
+const FIXES = {
+  "Входная группа":["Установить пандус или подъёмную платформу","Убрать порог или сделать скос","Заменить дверь на более широкую","Установить кнопку вызова персонала"],
+  "Тамбур":["Изменить направление открывания двери","Установить автоматическую дверь","Установить кнопку вызова персонала"],
+  "Коридор":["Освободить проход от мебели и оборудования","Сделать карман для разъезда"],
+  "Пути движения":["Освободить проход от препятствий","Выровнять покрытие","Сделать карман для разъезда"],
+  "Пандус":["Переделать пандус с меньшим уклоном","Добавить промежуточную площадку","Установить поручни с двух сторон","Установить бортики"],
+  "Бордюрный съезд":["Понизить бордюр до уровня проезжей части","Переделать съезд с меньшим уклоном"],
+  "Двери":["Установить доводчик с задержкой закрывания","Отрегулировать усилие доводчика","Перенести кнопку на высоту 0,85–1,1 м"],
+  "Информация":["Установить тактильную табличку со стороны ручки"],
+  "Туалет (универсальная кабина)":["Установить опорные поручни","Переоборудовать кабину под универсальную","Установить кнопку тревожной сигнализации"],
+  "Лифт":["Перенести кнопки на доступную высоту","Отрегулировать точность остановки","Установить подъёмную платформу"],
+  "Улица":["Выровнять покрытие, заделать швы","Установить освещение","Обустроить место отдыха"]
+};
+function fixChips(group){ const list = [...(FIXES[group] || (group.indexOf("Улица")===0 ? FIXES["Улица"] : [])), "Помощь персонала (разумное приспособление)"];
+  return list.map(t=>`<button type="button" class="chip" data-fix="${esc(t)}">${esc(t)}</button>`).join(""); }
+function bindChips(box, ta, set){ box.querySelectorAll("[data-fix]").forEach(b=>b.onclick=()=>{ const t = b.dataset.fix, v = ta.value.trim(); if(v.includes(t)) return; ta.value = v ? v+"; "+t : t; set(ta.value); }); }
+function draftGeoHTML(o){ return draft.geo||draft.place ? geoLine(draft.geo, draft.place)+`<button type="button" class="small" id="dgeox" style="margin-top:6px">Убрать место</button>`
+  : `<p class="muted" style="margin:4px 0 0">Не отмечено${o.geo?" — в отчёте будет место объекта":""}.</p>`; }
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function curObj(){ return db.objects.find(o=>o.id===db.currentObj)||null; }
@@ -923,11 +998,14 @@ function renderMeasure(){
     <label for="val">Факт, ${esc(cur.unit)}</label>
     <input id="val" type="text" inputmode="decimal" autocomplete="off" placeholder="например 0,85" value="${esc(draft.value)}">
     <div id="live"></div>
+    <label>Место замера</label><div id="dgeo"></div>
+    <div class="row" style="margin-top:6px"><button id="dhere" class="small" type="button">📍 Я здесь</button><button id="dmap" class="small" type="button">На карте</button></div>
+    <label>Подтверждающие фото</label>${tilesHTML("draft")}
+    <label class="chk"><input type="checkbox" id="stampChk" ${db.settings.stamp?"checked":""}> Подписывать на фото дату и место</label>
+    <label for="exp">Опыт эксперта: как это на коляске</label><textarea id="exp" placeholder="Например: дверь тяжёлая, одному не открыть">${esc(draft.exp)}</textarea>
+    <label for="fix">Что реально сделать</label><textarea id="fix" placeholder="Что может сделать объект или мэрия">${esc(draft.fix)}</textarea>
+    <div class="chips" id="fixchips">${fixChips(cur.group)}</div>
     <label for="cmt">Комментарий</label><textarea id="cmt">${esc(draft.comment)}</textarea>
-    <div class="row" style="margin-top:10px"><button id="photo">Сделать фото</button><button id="gallery">Фото из галереи</button></div>
-    <input type="file" id="fcam" accept="image/*" capture="environment" class="hidden">
-    <input type="file" id="fgal" accept="image/*" multiple class="hidden">
-    <div class="thumbs" id="dthumbs"></div>
     <div style="margin-top:14px"><button id="saveM" class="primary" style="width:100%">Сохранить замер</button></div>`;
   }
   h += `</div>`;
@@ -945,23 +1023,25 @@ function renderMeasure(){
       live.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ draft.cond = b.dataset.c==="1"; upd(); }); };
     val.oninput = upd; upd();
     document.getElementById("cmt").oninput = e=>{ draft.comment = e.target.value; };
-    const addFiles = async files=>{ for(const f of files){ const b = await resize(f); const id = uid(); if(await putPhoto(id,b)) draft.photos.push(id); else alert("Фото не сохранилось: память недоступна."); } drawDraftThumbs(); };
-    document.getElementById("photo").onclick = ()=>document.getElementById("fcam").click();
-    document.getElementById("gallery").onclick = ()=>document.getElementById("fgal").click();
-    document.getElementById("fcam").onchange = e=>{ addFiles([...e.target.files]); e.target.value=""; };
-    document.getElementById("fgal").onchange = e=>{ addFiles([...e.target.files]); e.target.value=""; };
-    drawDraftThumbs();
-    document.getElementById("saveM").onclick = ()=>{
+    fillImgs(app);
+    const sg = ()=>{ byId("dgeo").innerHTML = draftGeoHTML(o); const x = byId("dgeox"); if(x) x.onclick = ()=>{ draft.geo = null; draft.place = ""; sg(); }; };
+    sg();
+    byId("dhere").onclick = e=>hereFill(e.currentTarget, it=>{ draft.geo = it.geo; draft.place = it.address; sg(); });
+    byId("dmap").onclick = ()=>openPicker(draft.geo||o.geo, (g,a)=>{ draft.geo = g; draft.place = a||""; sg(); });
+    byId("stampChk").onchange = e=>{ db.settings.stamp = e.target.checked; save(); };
+    byId("exp").oninput = e=>{ draft.exp = e.target.value; };
+    const fx = byId("fix"); fx.oninput = e=>{ draft.fix = e.target.value; };
+    bindChips(byId("fixchips"), fx, t=>{ draft.fix = t; });
+    byId("saveM").onclick = ()=>{
       const v = num(val.value); if(v==null){ alert("Введите число."); val.focus(); return; }
-      const k = check(cur,v,o);
-      db.records.unshift({ id:uid(), objId:o.id, ruleId:cur.id, value:v, result:k, ts:Date.now(), comment:draft.comment.trim(), photos:draft.photos.slice(), cond:(k==='relax'?draft.cond:null) });
-      save(); draft = { group:draft.group, ruleId:"", value:"", comment:"", photos:[], cond:null };
+      const k = check(cur,v,o), slots = Object.assign({}, draft.slots);
+      db.records.unshift({ id:uid(), objId:o.id, ruleId:cur.id, value:v, result:k, ts:Date.now(), comment:draft.comment.trim(), exp:draft.exp.trim(), fix:draft.fix.trim(),
+        geo:draft.geo, place:draft.place, slots, photos:Object.values(slots).filter(Boolean), cond:(k==='relax'?draft.cond:null) });
+      save(); draft = newDraft(draft.group);
       toast("Сохранено"); renderMeasure();
     };
   }
 }
-function drawDraftThumbs(){ const el = document.getElementById("dthumbs"); if(!el) return; el.innerHTML="";
-  draft.photos.forEach(async id=>{ const b = await getPhoto(id); if(!b) return; const im = document.createElement("img"); im.src = URL.createObjectURL(b); im.alt="Фото замера"; im.onclick=()=>showPhoto(id); el.appendChild(im); }); }
 function bindObj(){
   const s = document.getElementById("objsel"); if(s) s.onchange = e=>{ db.currentObj = e.target.value||null; save(); renderMeasure(); };
   const n = document.getElementById("newobj"); if(n) n.onclick = ()=>objForm(null);
@@ -969,18 +1049,28 @@ function bindObj(){
 }
 function objForm(o){
   app.innerHTML = `<div class="card"><h2 style="margin-top:0">${o?"Изменить объект":"Новый объект"}</h2>
-    <label for="on">Название</label><input id="on" type="text" value="${esc(o?o.name:"")}" placeholder="Поликлиника № …">
-    <label for="oa">Адрес</label><input id="oa" type="text" value="${esc(o?o.address:"")}" placeholder="ул. …, дом">
+    <label for="on">Название</label><input id="on" type="text" data-ac="name" autocomplete="off" value="${esc(o?o.name:"")}" placeholder="Поликлиника № … — подскажу по карте">
+    <label for="oa">Адрес</label><input id="oa" type="text" data-ac="addr" autocomplete="off" value="${esc(o?o.address:"")}" placeholder="ул. …, дом">
+    <div id="ogeo"></div>
+    <div class="row" style="margin-top:6px"><button type="button" class="small" id="ohere">📍 Я здесь</button><button type="button" class="small" id="omap">На карте</button></div>
     <label for="oe">Строительство или реконструкция завершены позже 1 июля 2016 года?</label>
     <select id="oe">${[["new","Да — новое строительство"],["recon","Да — реконструкция"],["old","Нет — раньше, с тех пор не реконструировалось"],["unknown","Не знаю (уточню)"]].map(([k,t])=>`<option value="${k}" ${((o?o.bstatus:"unknown")===k)?"selected":""}>${t}</option>`).join("")}</select>
     <label for="oy">Год постройки или последней реконструкции (если известен)</label><input id="oy" type="text" inputmode="numeric" value="${esc(o?o.year:"")}" placeholder="например 1987">
     <p class="muted">От этого зависит, какие нормы обязательны: после 01.07.2016 — современные; для старых зданий отклонение не считается нарушением размеров.</p>
     <div class="row"><button class="primary" id="osave">Сохранить</button><button id="ocancel">Отмена</button></div>
     ${o?`<div style="margin-top:12px"><button class="danger small" id="odel">Удалить объект и его замеры</button></div>`:""}</div>`;
+  let fg = o ? (o.geo||null) : null;
+  const og = ()=>{ byId("ogeo").innerHTML = fg ? geoLine(fg) : `<p class="muted" style="margin:4px 0 0">Место не отмечено. Начните вводить название или адрес — подскажу по карте. Или нажмите «Я здесь».</p>`; };
+  og();
+  const onm = byId("on"), oad = byId("oa");
+  onm._acPick = it=>{ if(it.name) onm.value = it.name; if(it.address) oad.value = it.address; if(it.geo){ fg = it.geo; og(); } };
+  oad._acPick = it=>{ if(it.address) oad.value = it.address; if(it.geo){ fg = it.geo; og(); } };
+  byId("ohere").onclick = e=>hereFill(e.currentTarget, it=>{ if(it.address) oad.value = it.address; fg = it.geo; og(); });
+  byId("omap").onclick = ()=>openPicker(fg, (g,a)=>{ fg = g; if(a) oad.value = a; og(); });
   document.getElementById("ocancel").onclick = ()=>renderMeasure();
   document.getElementById("osave").onclick = ()=>{
     const name = document.getElementById("on").value.trim(); if(!name){ alert("Введите название."); return; }
-    const data = { name, address:document.getElementById("oa").value.trim(), bstatus:document.getElementById("oe").value, year:document.getElementById("oy").value.trim() }; data.existing = data.bstatus!=="new";
+    const data = { name, address:document.getElementById("oa").value.trim(), bstatus:document.getElementById("oe").value, year:document.getElementById("oy").value.trim(), geo:fg }; data.existing = data.bstatus!=="new";
     if(o) Object.assign(o,data); else { const n = Object.assign({id:uid()},data); db.objects.push(n); db.currentObj = n.id; }
     save(); renderMeasure();
   };
@@ -1002,7 +1092,8 @@ function renderLog(){
   const cnt = {ok:0,bad:0,relax:0,relaxok:0,old:0,nonorm:0};
   const items = list.map(r=>{ const v = recView(r); cnt[v.k==="bad2"?"bad":v.k]++; return {r,v}; });
   let h = `<div class="card"><label for="lf">Показать</label><select id="lf"><option value="all">Все объекты</option>${db.objects.map(o=>`<option value="${o.id}" ${logFilter===o.id?"selected":""}>${esc(o.name)}</option>`).join("")}</select>
-  <div class="stat"><span class="badge ok">соотв.: ${cnt.ok}</span><span class="badge bad">не соотв.: ${cnt.bad}</span><span class="badge relax">ждут проверки условия: ${cnt.relax}</span><span class="badge relax">допустимо: ${cnt.relaxok}</span><span class="badge old">до 2016: ${cnt.old}</span><span class="badge nonorm">нет нормы: ${cnt.nonorm}</span></div></div>`;
+  <div class="stat"><span class="badge ok">соотв.: ${cnt.ok}</span><span class="badge bad">не соотв.: ${cnt.bad}</span><span class="badge relax">ждут проверки условия: ${cnt.relax}</span><span class="badge relax">допустимо: ${cnt.relaxok}</span><span class="badge old">до 2016: ${cnt.old}</span><span class="badge nonorm">нет нормы: ${cnt.nonorm}</span></div>
+  ${items.length?`<button id="lmapall" class="small" style="width:100%">🗺 Замеры на карте</button>`:""}</div>`;
   if(!items.length) h += `<div class="card muted">Замеров пока нет.</div>`;
   else h += `<div class="card">`+items.map(({r,v})=>`<div class="item" data-id="${r.id}">
     <div><b>${esc(v.ru.name)}</b></div>
@@ -1010,27 +1101,62 @@ function renderLog(){
     <div>Факт: <b>${fmt(r.value)} ${esc(v.ru.unit)}</b> · ${resultBadge(v.k)}</div>
     <div class="muted">Норма: ${esc(v.ru.min!==undefined?normText(v.ru):"")} · ${esc(v.ru.clause)}, ${esc(v.ru.doc)}</div>
     ${v.baseK==="relax"?`<div class="warn"><b>Условие допуска:</b> ${esc(v.ru.cond||"не указано")}</div><div class="row" style="margin-top:6px"><button class="small ${r.cond===true?"primary":""}" data-cond="1" data-rid="${r.id}">Условие выполнено</button><button class="small ${r.cond===false?"primary":""}" data-cond="0" data-rid="${r.id}">Не выполнено</button></div>`:""}
+    ${geoLine(r.geo, r.place)}
+    ${r.exp?`<div><b>Опыт эксперта:</b> ${esc(r.exp)}</div>`:""}
+    ${r.fix?`<div><b>Что сделать:</b> ${esc(r.fix)}</div>`:""}
     ${r.comment?`<div>${esc(r.comment)}</div>`:""}
-    <div class="thumbs" data-ph="${r.photos.join(",")}"></div>
-    <div style="margin-top:6px"><button class="small danger" data-del="${r.id}">Удалить</button></div></div>`).join("")+`</div>`;
+    ${tilesHTML(r.id)}
+    <div class="row" style="margin-top:6px"><button class="small" data-edit="${r.id}">Изменить</button><button class="small danger" data-del="${r.id}">Удалить</button></div></div>`).join("")+`</div>`;
   app.innerHTML = h;
   document.getElementById("lf").onchange = e=>{ logFilter = e.target.value; renderLog(); };
   app.querySelectorAll("[data-cond]").forEach(b=>b.onclick=()=>{ const r = db.records.find(x=>x.id===b.dataset.rid); if(r){ r.cond = b.dataset.cond==="1"; save(); renderLog(); } });
   app.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ if(!confirm("Удалить замер?")) return;
-    const r = db.records.find(x=>x.id===b.dataset.del); if(r) r.photos.forEach(delPhoto);
+    const r = db.records.find(x=>x.id===b.dataset.del); if(r) (r.photos||[]).forEach(forgetPhoto);
     db.records = db.records.filter(x=>x.id!==b.dataset.del); save(); renderLog(); });
-  app.querySelectorAll("[data-ph]").forEach(async el=>{ for(const id of el.dataset.ph.split(",").filter(Boolean)){
-    const b = await getPhoto(id); if(!b) continue; const im = document.createElement("img"); im.src = URL.createObjectURL(b); im.alt="Фото замера"; im.onclick=()=>showPhoto(id); el.appendChild(im); } });
+  fillImgs(app);
+  app.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{ editRec(b.dataset.edit); window.scrollTo(0,0); });
+  const lm = byId("lmapall"); if(lm) lm.onclick = ()=>openMapAll(items);
+}
+function editRec(id){ const r = db.records.find(x=>x.id===id); if(!r) return; const v = recView(r);
+  app.innerHTML = `<div class="card"><h2 style="margin-top:0">${esc(v.ru.name)}</h2><p class="muted">${esc(v.ob?v.ob.name:"")} · ${new Date(r.ts).toLocaleString("ru-RU",{dateStyle:"short",timeStyle:"short"})}</p>
+   <label for="rv">Факт, ${esc(v.ru.unit)}</label><input id="rv" type="text" inputmode="decimal" autocomplete="off" value="${fmt(r.value)}">
+   <label>Место замера</label><div id="rgeo"></div>
+   <div class="row" style="margin-top:6px"><button type="button" class="small" id="rhere">📍 Я здесь</button><button type="button" class="small" id="rmap">На карте</button></div>
+   <label>Подтверждающие фото</label>${tilesHTML(r.id)}
+   <label for="rexp">Опыт эксперта: как это на коляске</label><textarea id="rexp">${esc(r.exp||"")}</textarea>
+   <label for="rfix">Что реально сделать</label><textarea id="rfix">${esc(r.fix||"")}</textarea><div class="chips" id="rchips">${fixChips(v.ru.group||"")}</div>
+   <label for="rcmt">Комментарий</label><textarea id="rcmt">${esc(r.comment||"")}</textarea>
+   <p class="muted">Фото сохраняются сразу. Остальное — кнопкой «Сохранить».</p>
+   <div class="row" style="margin-top:12px"><button class="primary" id="rsv">Сохранить</button><button id="rcn">Назад</button></div></div>`;
+  fillImgs(app);
+  let g = r.geo||null, pl = r.place||"";
+  const sg = ()=>{ byId("rgeo").innerHTML = g||pl ? geoLine(g, pl)+`<button type="button" class="small" id="rgeox" style="margin-top:6px">Убрать место</button>`
+    : `<p class="muted" style="margin:4px 0 0">Не отмечено${v.ob&&v.ob.geo?" — в отчёте будет место объекта":""}.</p>`;
+    const x = byId("rgeox"); if(x) x.onclick = ()=>{ g = null; pl = ""; sg(); }; };
+  sg();
+  byId("rhere").onclick = e=>hereFill(e.currentTarget, it=>{ g = it.geo; pl = it.address; sg(); });
+  byId("rmap").onclick = ()=>openPicker(g||(v.ob&&v.ob.geo), (gg,a)=>{ g = gg; pl = a||""; sg(); });
+  const fx = byId("rfix"); bindChips(byId("rchips"), fx, ()=>{});
+  byId("rcn").onclick = renderLog;
+  byId("rsv").onclick = ()=>{ const val = num(byId("rv").value); if(val==null){ alert("Введите число."); return; }
+    r.value = val; if(v.ob && v.ru.min!==undefined) r.result = check(v.ru, val, v.ob); if(r.result!=="relax") r.cond = null;
+    r.geo = g; r.place = pl; r.exp = byId("rexp").value.trim(); r.fix = fx.value.trim(); r.comment = byId("rcmt").value.trim();
+    save(); toast("Сохранено"); renderLog(); };
 }
 
-async function showPhoto(id){
+async function showPhoto(id, ctx){
   const b = await getPhoto(id); if(!b) return; const u = URL.createObjectURL(b);
-  const ov = document.createElement("div"); ov.className="overlay";
-  ov.innerHTML = `<img src="${u}" alt="Фото"><div class="row" style="width:100%;max-width:420px"><button id="psh" class="primary">Поделиться</button><button id="pcl">Закрыть</button></div>`;
+  const ov = document.createElement("div"); ov.className = "overlay"; ov.setAttribute("role","dialog");
+  ov.innerHTML = `${ctx?`<div class="vcap">${esc(SLOTN[ctx.slot]||"Фото")}</div>`:""}<img src="${u}" alt="Фото">
+   ${ctx?`<div class="row" style="width:100%;max-width:520px"><label class="btnlike"><input type="file" accept="image/*" capture="environment" class="vh" data-vrep="1">Переснять</label><label class="btnlike"><input type="file" accept="image/*" class="vh" data-vrep="1">Из галереи</label></div>`:""}
+   <div class="row" style="width:100%;max-width:520px"><button id="psh" class="primary">Поделиться</button>${ctx?`<button id="prm" class="danger">Убрать</button>`:""}<button id="pcl">Закрыть</button></div>`;
   document.body.appendChild(ov);
-  ov.querySelector("#pcl").onclick = ()=>{ URL.revokeObjectURL(u); ov.remove(); };
+  const close = ()=>{ URL.revokeObjectURL(u); ov.remove(); };
+  ov.querySelector("#pcl").onclick = close;
   ov.querySelector("#psh").onclick = async ()=>{ const f = new File([b],"foto.jpg",{type:"image/jpeg"});
     try{ if(isNative){ await nativeShareBlob("foto.jpg", b); return; } if(navigator.canShare && navigator.canShare({files:[f]})) await navigator.share({files:[f]}); else { const a=document.createElement("a"); a.href=u; a.download="foto.jpg"; a.click(); } }catch(e){} };
+  if(ctx){ ov.querySelectorAll("[data-vrep]").forEach(inp=>inp.onchange = e=>{ const f = e.target.files && e.target.files[0]; if(!f) return; close(); setSlotPhoto(ctx.scope, ctx.slot, f); });
+    ov.querySelector("#prm").onclick = ()=>{ if(!confirm("Убрать это фото?")) return; close(); removeSlotPhoto(ctx.scope, ctx.slot); }; }
 }
 
 /* ---- Пандус ---- */
@@ -1039,13 +1165,14 @@ function renderRamp(){
    <label for="rh">Перепад высот, мм</label><input id="rh" type="text" inputmode="decimal" placeholder="например 450">
    <label for="rl">Длина пандуса по горизонтали, мм</label><input id="rl" type="text" inputmode="decimal" placeholder="например 9000">
    <div id="rout"></div>
-   <p class="muted">Таблица длин марша (СП 59.13330.2020, п. 5.1.14, табл. 5.1): до 40‰ — 15 м, 41–50‰ — 12 м, 51–60‰ — 9 м, 61–80‰ — 6 м. Значения взяты из сводного источника, сверьте с текстом СП.</p></div>`;
+   <p class="muted">Длина одного марша (СП 59.13330.2020, п. 5.1.14, табл. 5.1): до 40‰ — 15 м, 40–50‰ — 12 м, 50–60‰ — 9 м, 61–80‰ — 6 м. Уклон больше 80‰ — только в стеснённых условиях, до 100‰ при длине наклонной плоскости до 5 м и с сопровождающим (прим. 2 к табл. 5.1). Сверено с текстом СП.</p></div>`;
   const h = document.getElementById("rh"), l = document.getElementById("rl"), out = document.getElementById("rout");
   const upd = ()=>{ const hh = num(h.value), ll = num(l.value); if(hh==null||ll==null||ll<=0){ out.innerHTML=""; return; }
     const pm = hh/ll*1000; const maxLen = pm<=40?15:pm<=50?12:pm<=60?9:pm<=80?6:null;
     let a, k;
     if(pm>100){ a = "Уклон выше 100‰ — не соответствует."; k="bad"; }
-    else if(pm>80){ a = "Выше 80‰: только в стеснённых условиях, длина до 5 м, с сопровождающим (до 100‰)."; k="relax"; }
+    else if(pm>80 && ll>5000){ a = "Выше 80‰ допускается только при длине наклонной плоскости до 5 м, а здесь "+fmt((ll/1000).toFixed(1))+" м — не соответствует."; k="bad"; }
+    else if(pm>80){ a = "Выше 80‰: допустимо только в стеснённых условиях, длина до 5 м, передвижение с сопровождающим (до 100‰)."; k="relax"; }
     else if(ll/1000<=maxLen){ a = "Уклон и длина марша в пределах нормы."; k="ok"; }
     else { a = "Марш длиннее допустимого ("+fmt(maxLen)+" м): нужна промежуточная площадка."; k="bad"; }
     out.innerHTML = `<div class="result ${k}">${esc(a)}<small>Уклон ${fmt(pm.toFixed(1))}‰ (${fmt((pm/10).toFixed(1))} %), 1:${fmt((ll/hh).toFixed(1))}${maxLen?`, макс. длина марша ${fmt(maxLen)} м`:""}</small></div>`; };
@@ -1059,21 +1186,23 @@ function exportRows(objId){
 function csvEsc(s){ s = String(s==null?"":s); return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
 function condState(v, r){ return v.baseK!=="relax" ? "" : (r.cond===true?"выполнено":r.cond===false?"не выполнено":"не проверено"); }
 function buildCSV(objId){
-  const head = ["Дата","Объект","Адрес","Статус здания","Год","Код правила","Параметр","Ед.","Факт","Норма","Результат","Пункт и документ","Статус проверки нормы","Условие допуска","Условие проверено","Комментарий"];
+  const head = ["Дата","Объект","Адрес","Статус здания","Год","Код правила","Параметр","Ед.","Факт","Норма","Результат","Пункт и документ","Статус проверки нормы","Условие допуска","Условие проверено","Комментарий","Опыт эксперта","Что реально сделать","Место замера","Координаты","Карта","Фото, шт."];
   const lines = [head.join(";")];
-  exportRows(objId).forEach(({r,v})=>{ const ru=v.ru, ob=v.ob;
+  exportRows(objId).forEach(({r,v})=>{ const ru=v.ru, ob=v.ob, g=r.geo||(ob&&ob.geo);
     lines.push([new Date(r.ts).toLocaleDateString("ru-RU"), ob?ob.name:"", ob?ob.address:"", ob?(BST[ob.bstatus]||""):"", ob?ob.year:"", ru.id||r.ruleId, ru.name, ru.unit, fmt(r.value),
-      ru.min!==undefined?normText(ru):"", RES[v.k][0], (ru.clause||"")+", "+(ru.doc||""), STATUS[ru.status]||"", v.baseK==="relax"?(ru.cond||""):"", condState(v,r), r.comment].map(csvEsc).join(";")); });
+      ru.min!==undefined?normText(ru):"", RES[v.k][0], (ru.clause||"")+", "+(ru.doc||""), STATUS[ru.status]||"", v.baseK==="relax"?(ru.cond||""):"", condState(v,r), r.comment, r.exp||"", r.fix||"", r.place||"", g?geoTxt(g):"", g?mapLink(g):"", (r.photos||[]).length].map(csvEsc).join(";")); });
   return "\ufeff"+lines.join("\r\n");
 }
 function buildText(objId, onlyBad){
   const o = db.objects.find(x=>x.id===objId); if(!o) return "";
   const rows = exportRows(objId).filter(({v})=>!onlyBad||["bad","bad2","old","relax"].includes(v.k));
-  let t = `Объект: ${o.name}\nАдрес: ${o.address||"—"}\nЗдание: ${BST[o.bstatus]||"—"}${o.year?", "+o.year+" г.":""}\nДата: ${new Date().toLocaleDateString("ru-RU")}\n\n`;
+  let t = `Объект: ${o.name}\nАдрес: ${o.address||"—"}${o.geo?" ("+mapLink(o.geo)+")":""}\nЗдание: ${BST[o.bstatus]||"—"}${o.year?", "+o.year+" г.":""}\nДата: ${new Date().toLocaleDateString("ru-RU")}\n\n`;
   if(o.bstatus==="old") t += "Примечание: здание введено до 01.07.2016 и не реконструировалось; приведённые отклонения — несоответствие современным требованиям, просим принять меры по приспособлению.\n\n";
   t += onlyBad?"Выявленные несоответствия:\n":"Результаты замеров:\n";
   rows.forEach(({r,v},i)=>{ const ru=v.ru; t += `${i+1}. ${ru.name}: факт ${fmt(r.value)} ${ru.unit}; требуется ${ru.min!==undefined?normText(ru):""} (${ru.clause}, ${ru.doc}) — ${RES[v.k][0]}.`
-    + (v.baseK==="relax"?` Условие допуска: ${ru.cond||"—"} Проверка условия: ${condState(v,r)}.`:"") + (r.comment?" "+r.comment:"") + "\n"; });
+    + (v.baseK==="relax"?` Условие допуска: ${ru.cond||"—"} Проверка условия: ${condState(v,r)}.`:"")
+    + (r.place||r.geo?` Место: ${[r.place, r.geo?mapLink(r.geo):""].filter(Boolean).join(", ")}.`:"")
+    + (r.exp?` Опыт эксперта: ${r.exp}.`:"") + (r.fix?` Что можно сделать: ${r.fix}.`:"") + (r.comment?" "+r.comment:"") + "\n"; });
   if(!rows.length) t += "—\n";
   t += "\nЗначения норм должны быть сверены с действующей редакцией свода правил.\n";
   return t;
@@ -1089,9 +1218,11 @@ function renderExport(){
   app.innerHTML = `<div class="card"><h2 style="margin-top:0">Экспорт</h2>
    <label for="eo">Объект</label><select id="eo"><option value="">Все объекты</option>${db.objects.map(x=>`<option value="${x.id}" ${x.id===db.currentObj?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
    <div class="row" style="margin-top:10px"><button id="ecsv" class="primary">Таблица CSV (для Google Таблиц)</button></div>
+   <div class="row" style="margin-top:10px"><button id="erep" class="primary">Отчёт с фото</button><button id="erepb">Отчёт с фото: только нарушения</button></div>
+   <p class="muted">Отчёт — файл, который открывается на любом телефоне и компьютере как страница: замеры, нормы, пункты, место на карте и фото. Его можно приложить к обращению или распечатать в PDF.</p>
    <div class="row" style="margin-top:10px"><button id="etxt">Текст для акта</button><button id="ebad">Текст для обращения (только нарушения)</button></div>
    <pre id="eprev" class="hidden"></pre><div class="row hidden" id="ebtns"><button id="ecopy" class="small">Копировать</button><button id="eshare" class="small">Поделиться</button></div></div>
-   <div class="card"><h3 style="margin-top:0">Резервная копия</h3><p class="muted">Все данные хранятся только в этом телефоне. Фото в копию не входят.</p>
+   <div class="card"><h3 style="margin-top:0">Резервная копия</h3><p class="muted">Все данные хранятся только в этом телефоне. Копия — один файл со всеми объектами, замерами и фото. Сохраните её в облако или отправьте себе: с ней всё переносится на новый телефон.</p>
    <div class="row"><button id="ebk" class="small">Сохранить копию</button><button id="eim" class="small">Загрузить копию</button></div><input type="file" id="eimf" accept=".json" class="hidden"></div>`;
   const sel = ()=>document.getElementById("eo").value;
   document.getElementById("ecsv").onclick = ()=>shareOrDownload("zamery_"+new Date().toISOString().slice(0,10)+".csv", buildCSV(sel()), "text/csv");
@@ -1101,10 +1232,19 @@ function renderExport(){
   document.getElementById("ebad").onclick = ()=>showT(true);
   document.getElementById("ecopy").onclick = async ()=>{ const t = document.getElementById("eprev").textContent; try{ await navigator.clipboard.writeText(t); toast("Скопировано"); }catch(e){ alert("Не удалось скопировать. Выделите текст вручную."); } };
   document.getElementById("eshare").onclick = async ()=>{ const t = document.getElementById("eprev").textContent; try{ if(isNative){ await NShare.share({text:t}); return; } if(navigator.share) await navigator.share({text:t}); else toast("Поделиться не поддерживается"); }catch(e){} };
-  document.getElementById("ebk").onclick = ()=>shareOrDownload("gorynych_backup.json", JSON.stringify(db), "application/json");
+  const rep = async only=>{ const id = sel(); if(!id){ alert("Выберите конкретный объект."); return; } toast("Готовлю отчёт…");
+    const o = db.objects.find(x=>x.id===id), html = await buildReport(id, only);
+    await shareOrDownload("otchet_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+"_"+new Date().toISOString().slice(0,10)+".html", html, "text/html"); };
+  byId("erep").onclick = ()=>rep(false); byId("erepb").onclick = ()=>rep(true);
+  document.getElementById("ebk").onclick = async ()=>{ toast("Собираю копию…"); const bk = await buildBackup();
+    await shareOrDownload("gorynych_backup_"+new Date().toISOString().slice(0,10)+".json", bk.text, "application/json"); };
   document.getElementById("eim").onclick = ()=>document.getElementById("eimf").click();
   document.getElementById("eimf").onchange = e=>{ const f = e.target.files[0]; if(!f) return; const rd = new FileReader();
-    rd.onload = ()=>{ try{ const d = JSON.parse(rd.result); if(!Array.isArray(d.objects)||!Array.isArray(d.records)) throw 0; if(!confirm("Заменить текущие данные копией?")) return; db = Object.assign({objects:[],records:[],overrides:{},currentObj:null}, d); save(); toast("Загружено"); render(); }catch(x){ alert("Файл не похож на копию."); } };
+    rd.onload = async ()=>{ let d, nd; try{ d = JSON.parse(rd.result); nd = d && d.v===2 ? d.db : d; if(!nd||!Array.isArray(nd.objects)||!Array.isArray(nd.records)) throw 0; }catch(x){ alert("Файл не похож на копию."); return; }
+      if(!confirm("Заменить текущие данные копией?")) return;
+      db = Object.assign({objects:[],records:[],overrides:{},currentObj:null}, nd); db.settings = Object.assign({stamp:true}, db.settings||{});
+      let n = 0; if(d.v===2 && d.photos) for(const [pid,u] of Object.entries(d.photos)){ try{ if(await putPhoto(pid, dataURLtoBlob(u))) n++; }catch(x){} }
+      save(); toast("Загружено"+(n?", фото: "+n:"")); render(); };
     rd.readAsText(f); };
 }
 
@@ -1152,6 +1292,260 @@ function editRule(id){
 function toast(t){ const d = document.createElement("div"); d.textContent = t; d.setAttribute("role","status");
   d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:#14213d;color:#fff;padding:12px 18px;border-radius:12px;z-index:30;font-weight:700";
   document.body.appendChild(d); setTimeout(()=>d.remove(),1800); }
+
+/* ==== МЕСТО: GPS, адрес, умный поиск, карта ==== */
+const byId = id=>document.getElementById(id);
+const NSK = {lat:55.0302, lon:82.9204}; // центр Новосибирска, пока нет своего места
+function getFix(){ return new Promise(res=>{ if(!navigator.geolocation) return res(null);
+  navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}), ()=>res(null), {enableHighAccuracy:true, timeout:12000, maximumAge:30000}); }); }
+function dist(a,b){ const R=6371000, d=Math.PI/180, dl=(b.lat-a.lat)*d, dn=(b.lon-a.lon)*d;
+  const x=Math.sin(dl/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin(dn/2)**2; return 2*R*Math.asin(Math.min(1,Math.sqrt(x))); }
+const fmtDist = d => d<1000 ? Math.max(10,Math.round(d/10)*10)+" м" : (d/1000).toFixed(d<10000?1:0).replace(".",",")+" км";
+const mapLink = g => "https://yandex.ru/maps/?pt="+(+g.lon).toFixed(6)+","+(+g.lat).toFixed(6)+"&z=17&l=map";
+const geoTxt = g => g.lat.toFixed(5)+", "+g.lon.toFixed(5);
+function geoLine(g, place){ if(!g) return place?`<div class="geo">📍 ${esc(place)}</div>`:"";
+  return `<div class="geo">📍 ${place?esc(place)+" · ":""}${geoTxt(g)}${g.manual?" (на карте)":g.acc?" (±"+Math.round(g.acc)+" м)":""} · <a href="${mapLink(g)}" target="_blank" rel="noopener">открыть карту</a></div>`; }
+function fetchJSON(u, ms=7000){ const c = window.AbortController ? new AbortController() : null; const t = setTimeout(()=>{ if(c) c.abort(); }, ms);
+  return fetch(u, c?{signal:c.signal}:{}).then(r=>{ clearTimeout(t); if(!r.ok) throw new Error("http "+r.status); return r.json(); }, e=>{ clearTimeout(t); throw e; }); }
+function photonAddr(p){ return { street:[p.street,p.housenumber].filter(Boolean).join(", "), city:p.city||p.town||p.village||p.locality||p.district||"" }; }
+// адрес по координатам: сначала OpenStreetMap (Nominatim), если не ответил — Photon
+async function reverseGeo(g){
+  try{ const j = await fetchJSON("https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=ru&zoom=18&addressdetails=1&lat="+g.lat+"&lon="+g.lon);
+    const a = j && j.address;
+    if(a){ const s = [a.road||a.pedestrian||a.footway||a.neighbourhood, a.house_number].filter(Boolean).join(", "); if(s) return s; } }catch(e){}
+  try{ const j = await fetchJSON("https://photon.komoot.io/reverse?lang=default&lat="+g.lat+"&lon="+g.lon);
+    const f = j && j.features && j.features[0];
+    if(f){ const p = f.properties||{}, s = photonAddr(p).street || p.name || ""; if(s) return s; } }catch(e){}
+  return null;
+}
+// сравнение текста: без регистра, ё и знаков; «ул.», «д.» и похожие слова не важны
+function fold(s){ return (s||"").toLowerCase().replace(/ё/g,"е").replace(/[.,;:«»"'„“”()№#\-–—\/]/g," ").replace(/\s+/g," ").trim(); }
+const STOP = {"ул":1,"улица":1,"д":1,"дом":1,"пр":1,"пр-т":1,"просп":1,"проспект":1,"пер":1,"переулок":1,"г":1,"город":1,"и":1,"на":1,"у":1};
+const words = s => fold(s).split(" ").filter(w=>w&&!STOP[w]);
+function lev(a,b){ let p=[]; for(let j=0;j<=b.length;j++) p[j]=j;
+  for(let i=1;i<=a.length;i++){ const c=[i]; for(let j=1;j<=b.length;j++) c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); p=c; } return p[b.length]; }
+// 2 = слово начинается так же, 1 = с опечаткой, 0 = нет
+function wordHit(w, list){ let best=0; const num=/^\d/.test(w), max=w.length>=7?2:w.length>=4?1:0;
+  for(const x of list){ if(x.indexOf(w)===0) return 2; if(num||!max) continue; if(lev(w,x.slice(0,w.length))<=max||lev(w,x)<=max) best=1; } return best; }
+function fit(q, name){ const nw = words(name); let s = 0; for(const w of words(q)){ const h = wordHit(w,nw); if(!h) return -1; s += h; } return s; }
+async function photonSearch(q, ref){
+  const j = await fetchJSON("https://photon.komoot.io/api/?limit=10&lang=default&q="+encodeURIComponent(q)+"&lat="+ref.lat.toFixed(5)+"&lon="+ref.lon.toFixed(5)+"&zoom=14&location_bias_scale=0.1");
+  const seen = {}, out = [];
+  ((j&&j.features)||[]).forEach(f=>{ const p = f.properties||{}, c = f.geometry&&f.geometry.coordinates; if(!c) return;
+    if(/^(country|state|region|county|continent)$/.test(p.type||"")) return;
+    const g = {lat:+c[1], lon:+c[0]}, d = dist(ref,g); if(d>50000) return;
+    const {street, city} = photonAddr(p); if(!p.name && !street) return;
+    const key = fold((p.name||"")+"|"+street); if(seen[key]) return; seen[key] = 1;
+    out.push({name:p.name||"", street, city, house:p.housenumber||"", geo:g, d}); });
+  const qn = words(q).find(w=>/^\d/.test(w)) || "";
+  out.forEach(o=>{ o.k = o.d - (qn && o.house && fold(o.house)===qn ? 1e6 : 0); });
+  return out.sort((a,b)=>a.k-b.k).slice(0,6);
+}
+
+// подсказки под полем: где вы сейчас, ваши прежние адреса, поиск по карте рядом
+const AC = { el:null, box:null, items:[], near:[], ns:"", nq:"", t:null, seq:0, fix:null, fixing:false, lastNet:0, here:null, hereKey:"" };
+function acRef(){ if(AC.fix) return AC.fix; const o = curObj(); if(o&&o.geo) return o.geo;
+  const g = db.objects.map(x=>x.geo).filter(Boolean).pop(); return g||NSK; }
+// где я, без вопроса о разрешении, если оно ещё не дано
+function acSilentFix(){ if(AC.fix||AC.fixing||!navigator.permissions||!navigator.geolocation) return; AC.fixing = true;
+  navigator.permissions.query({name:"geolocation"}).then(s=>{ if(s.state!=="granted"){ AC.fixing=false; return; }
+    getFix().then(g=>{ AC.fixing=false; if(g){ AC.fix=g; hereLookup(); } }); }, ()=>{ AC.fixing=false; }); }
+function hereLookup(){ const g = AC.fix; if(!g) return; const key = g.lat.toFixed(4)+","+g.lon.toFixed(4); if(key===AC.hereKey) return; AC.hereKey = key;
+  reverseGeo(g).then(a=>{ if(a){ AC.here = {address:a, geo:g}; if(AC.el) acRender(); } else AC.hereKey = ""; }); }
+function acLocal(q, ref){ const f = fold(q), m = {};
+  db.objects.forEach(o=>{ if(!o.address) return; const k = words(o.address).join(" "); if(!m[k]) m[k] = {name:o.name, address:o.address, geo:o.geo||null}; });
+  return Object.values(m).map(o=>{ const s = f ? fit(q,o.address) : 0; if(s<0 || fold(o.address)===f) return null;
+    o._d = o.geo ? dist(ref,o.geo) : null; o._s = s*5 + (o._d!=null ? (o._d<300?20:o._d<3000?8:0) : 0); return o; })
+    .filter(Boolean).sort((a,b)=>b._s-a._s).slice(0,4); }
+function acUpdate(){ const el = AC.el; if(!el) return; const q = el.value.trim();
+  AC.items = el.dataset.ac==="addr" ? acLocal(q, acRef()) : []; acNet(q); acRender(); }
+function acNet(q){ clearTimeout(AC.t);
+  if(q.length<3){ AC.seq++; AC.near=[]; AC.ns=""; AC.nq=""; return; }
+  if(q===AC.nq && AC.ns==="done") return;
+  AC.ns = "loading"; const seq = ++AC.seq;
+  // публичный поиск просит не чаще одного запроса в секунду
+  AC.t = setTimeout(()=>setTimeout(()=>{ if(seq!==AC.seq) return; AC.lastNet = Date.now();
+    photonSearch(q, acRef()).then(list=>{ if(seq!==AC.seq) return; AC.near=list; AC.ns="done"; AC.nq=q; acRender(); },
+      ()=>{ if(seq===AC.seq){ AC.ns="fail"; AC.near=[]; acRender(); } });
+  }, Math.max(0, 1000-(Date.now()-AC.lastNet))), 450); }
+function acRender(){ const el = AC.el; if(!el) return; const q = el.value.trim(), addr = el.dataset.ac==="addr";
+  if(!AC.box){ AC.box = document.createElement("div"); AC.box.className = "aclist"; AC.box.setAttribute("role","listbox");
+    AC.box.addEventListener("mousedown", e=>e.preventDefault()); AC.box.addEventListener("click", acPick); }
+  let h = "";
+  if(addr && AC.here && (!q || fit(q,AC.here.address)>=0)) h += `<button type="button" class="aci" role="option" data-i="h"><span class="acn">📍 ${esc(AC.here.address)}</span><span class="acs">вы сейчас здесь</span></button>`;
+  if(AC.items.length) h += `<div class="ach">Ваши объекты</div>`+AC.items.map((o,i)=>`<button type="button" class="aci" role="option" data-i="u${i}"><span class="acn">${esc(o.address)}</span><span class="acs">${esc([o.name, o._d!=null?fmtDist(o._d):""].filter(Boolean).join(" · "))}</span></button>`).join("");
+  if(AC.ns==="loading") h += `<div class="ach">На карте</div><div class="acs acwait">Ищу…</div>`;
+  else if(AC.ns==="done" && AC.near.length) h += `<div class="ach">На карте</div>`+AC.near.map((o,i)=>`<button type="button" class="aci" role="option" data-i="n${i}"><span class="acn">${esc(addr?(o.street||o.name):(o.name||o.street))}</span><span class="acs">${esc([addr?(o.street?o.name:""):(o.name?o.street:""), o.city, fmtDist(o.d)].filter(Boolean).join(" · "))}</span></button>`).join("");
+  else if(AC.ns==="done" && !AC.items.length) h += `<div class="acs acwait">На карте ничего не нашлось. Впишите сами или отметьте место кнопкой «На карте».</div>`;
+  else if(AC.ns==="fail") h += `<div class="acs acwait">Поиск по карте не отвечает (нет интернета?). Впишите сами.</div>`;
+  const box = AC.box; if(!h){ box.hidden = true; box.innerHTML = ""; return; }
+  box.innerHTML = h; box.hidden = false; if(box.previousElementSibling!==el) el.insertAdjacentElement("afterend", box); }
+function acClose(){ clearTimeout(AC.t); AC.seq++; AC.el = null; AC.ns = ""; AC.near = []; AC.nq = ""; if(AC.box){ AC.box.hidden = true; AC.box.innerHTML = ""; } }
+function acPick(e){ const t = e.target.closest(".aci"), el = AC.el; if(!t||!el) return; const i = t.dataset.i; let it = null;
+  if(i==="h") it = {address:AC.here.address, geo:AC.here.geo};
+  else if(i[0]==="u"){ const o = AC.items[+i.slice(1)]; if(o) it = {name:o.name, address:o.address, geo:o.geo}; }
+  else { const o = AC.near[+i.slice(1)]; if(o) it = {name:o.name||o.street, address:o.street||o.name, geo:{lat:o.geo.lat, lon:o.geo.lon, acc:null, manual:true}}; }
+  const cb = el._acPick; acClose(); el.blur(); if(it && cb) cb(it); }
+document.addEventListener("focusin", e=>{ const t = e.target; if(t.dataset && t.dataset.ac){ AC.el = t; acSilentFix(); hereLookup(); acUpdate(); } });
+document.addEventListener("input", e=>{ if(e.target===AC.el) acUpdate(); });
+document.addEventListener("focusout", e=>{ const t = e.target; if(t===AC.el) setTimeout(()=>{ if(AC.el===t && document.activeElement!==t) acClose(); }, 150); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && AC.el) acClose(); });
+// «Я здесь»: GPS и адрес
+async function hereFill(btn, cb){ const t = btn.textContent; btn.disabled = true; btn.textContent = "Ищу…";
+  const g = await getFix(); if(!g){ btn.disabled = false; btn.textContent = t; toast("Не удалось определить место. Разрешите геолокацию или отметьте на карте."); return; }
+  AC.fix = g; const a = await reverseGeo(g); btn.disabled = false; btn.textContent = t; cb({address:a||"", geo:g}); }
+
+// карта: Leaflet из приложения, если нет — из интернета
+const LLS = ["leaflet/","https://unpkg.com/leaflet@1.9.4/dist/","https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/","https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/"];
+let llReady = null, lmap = null, lmap2 = null, lay2 = null, pickCb = null, pickAddr = null, pickSeq = 0, lookT = null;
+function loadLeaflet(){ if(window.L) return Promise.resolve(); if(llReady) return llReady;
+  llReady = new Promise((res,rej)=>{ const next = i=>{ if(i>=LLS.length){ llReady = null; rej(); return; }
+    const base = LLS[i], s = document.createElement("script"); let done = false;
+    const fail = ()=>{ if(done) return; done = true; clearTimeout(to); s.remove(); next(i+1); };
+    const to = setTimeout(fail, 8000);
+    s.src = base+"leaflet.js"; s.onerror = fail;
+    s.onload = ()=>{ if(done) return; done = true; clearTimeout(to);
+      const l = document.createElement("link"); l.rel = "stylesheet"; l.href = base+"leaflet.css"; l.onload = l.onerror = ()=>res(); document.head.appendChild(l); setTimeout(res, 3000); };
+    document.head.appendChild(s); }; next(0); });
+  return llReady; }
+const osm = ()=>L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19, attribution:"© OpenStreetMap"});
+function lookupCenter(){ clearTimeout(lookT); const c = lmap.getCenter(), seq = ++pickSeq; pickAddr = null; byId("mapAddr").textContent = "Определяю адрес…";
+  lookT = setTimeout(()=>reverseGeo({lat:c.lat, lon:c.lng}).then(a=>{ if(seq!==pickSeq) return; pickAddr = a;
+    byId("mapAddr").textContent = a || ("Адрес не найден · "+c.lat.toFixed(5)+", "+c.lng.toFixed(5)); }), 700); }
+function gotoMe(){ const b = byId("mapMe"); b.disabled = true; b.textContent = "Ищу…";
+  getFix().then(g=>{ b.disabled = false; b.textContent = "Я здесь";
+    if(g){ AC.fix = g; if(lmap) lmap.setView([g.lat,g.lon], 18); } else toast("Не удалось определить место. Разрешите геолокацию или двигайте карту сами."); }); }
+function openPicker(start, cb){ pickCb = cb; pickAddr = null; byId("mapx").hidden = false; document.body.style.overflow = "hidden"; byId("mapAddr").textContent = "Загрузка карты…";
+  loadLeaflet().then(()=>{
+    if(!lmap){ lmap = L.map("map", {zoomControl:true}); osm().addTo(lmap); lmap.attributionControl.setPrefix(false);
+      lmap.on("movestart", ()=>{ byId("pin").classList.add("up"); pickSeq++; byId("mapAddr").textContent = "…"; });
+      lmap.on("moveend", ()=>{ byId("pin").classList.remove("up"); lookupCenter(); }); }
+    setTimeout(()=>lmap.invalidateSize(), 0);
+    const s = start || AC.fix; if(s) lmap.setView([s.lat,s.lon], 18); else { lmap.setView([NSK.lat,NSK.lon], 12); gotoMe(); }
+  }, ()=>{ byId("mapAddr").textContent = "Не удалось загрузить карту. Проверьте интернет и попробуйте ещё раз."; }); }
+function closeMap(id){ byId(id).hidden = true; if(byId("mapx").hidden && byId("mapall").hidden) document.body.style.overflow = ""; }
+byId("mapCancel").onclick = ()=>{ pickCb = null; closeMap("mapx"); };
+byId("mapMe").onclick = gotoMe;
+byId("mapOk").onclick = ()=>{ const cb = pickCb; pickCb = null; closeMap("mapx"); if(!lmap||!cb) return;
+  const c = lmap.getCenter(); cb({lat:c.lat, lon:c.lng, acc:null, manual:true}, pickAddr); };
+byId("allClose").onclick = ()=>closeMap("mapall");
+const KCOL = {ok:"#1b7a3a", relaxok:"#1b7a3a", bad:"#c0352b", bad2:"#c0352b", relax:"#b07d0a", old:"#b07d0a", nonorm:"#6b7280"};
+// все замеры на карте, цвет — результат
+function openMapAll(list){ byId("mapall").hidden = false; document.body.style.overflow = "hidden"; byId("allCount").textContent = "Загрузка карты…";
+  loadLeaflet().then(()=>{
+    if(!lmap2){ lmap2 = L.map("map2"); osm().addTo(lmap2); lmap2.attributionControl.setPrefix(false); lay2 = L.layerGroup().addTo(lmap2); }
+    lay2.clearLayers(); const pts = [];
+    list.forEach(({r,v})=>{ const g = r.geo || (v.ob && v.ob.geo); if(!g) return;
+      L.circleMarker([g.lat,g.lon], {radius:10, color:"#fff", weight:2, fillColor:KCOL[v.k]||"#6b7280", fillOpacity:.95})
+        .bindPopup(`<b>${esc(v.ru.name)}</b><br>${esc(v.ob?v.ob.name:"")}<br>Факт: ${fmt(r.value)} ${esc(v.ru.unit)} — ${RES[v.k][0]}`).addTo(lay2);
+      pts.push([g.lat,g.lon]); });
+    setTimeout(()=>{ lmap2.invalidateSize(); if(pts.length) lmap2.fitBounds(pts, {padding:[40,40], maxZoom:17}); else lmap2.setView([NSK.lat,NSK.lon], 11); }, 0);
+    byId("allCount").textContent = pts.length ? "На карте замеров: "+pts.length+" из "+list.length : "У замеров пока нет места. Отметьте место объекта или замера.";
+  }, ()=>{ byId("allCount").textContent = "Не удалось загрузить карту. Проверьте интернет."; }); }
+
+/* ==== ФОТО: окошки с подписью, подпись даты и места на снимке ==== */
+const SLOTS = [["view","Общий вид"],["meas","Замер рулеткой"],["detail","Деталь"]];
+const SLOTN = Object.fromEntries(SLOTS);
+// старые записи: фото по порядку раскладываются по окошкам, лишние остаются отдельно
+function ensureSlots(r){ if(!r.slots){ r.slots = {}; (r.photos||[]).forEach((id,i)=>{ if(i<SLOTS.length) r.slots[SLOTS[i][0]] = id; else (r.extra = r.extra||[]).push(id); }); } return r.slots; }
+function syncPhotos(r){ r.photos = [...Object.values(r.slots).filter(Boolean), ...(r.extra||[])]; }
+const scopeRec = scope => scope==="draft" ? null : db.records.find(x=>x.id===scope);
+function scopeSlots(scope){ if(scope==="draft") return draft.slots; const r = scopeRec(scope); return r ? ensureSlots(r) : {}; }
+const PURL = {};
+async function photoURL(id){ if(PURL[id]) return PURL[id]; const b = await getPhoto(id); if(!b) return null; return (PURL[id] = URL.createObjectURL(b)); }
+function forgetPhoto(id){ delPhoto(id); if(PURL[id]){ const u = PURL[id]; delete PURL[id]; setTimeout(()=>URL.revokeObjectURL(u), 3000); } }
+function fillImgs(root){ root.querySelectorAll("img[data-img]").forEach(async im=>{ const u = await photoURL(im.dataset.img); if(u) im.src = u; }); }
+function tileHTML(scope, k, cap, id){
+  return id ? `<button type="button" class="tile has" data-scope="${scope}" data-slot="${k}" data-pid="${id}" aria-label="${cap}: открыть фото"><img alt="" data-img="${id}"><span class="tcap">${cap}</span></button>`
+    : `<label class="tile" data-scope="${scope}" data-slot="${k}"><input type="file" accept="image/*" capture="environment" class="vh" data-pick="1"><span class="plus">+</span><span class="tl">${cap}</span></label>`; }
+function tilesInner(scope){ const s = scopeSlots(scope); return SLOTS.map(([k,cap])=>tileHTML(scope,k,cap,s[k])).join(""); }
+function tilesHTML(scope){ return `<div class="tiles" data-tiles="${scope}">${tilesInner(scope)}</div>
+  <div class="row" style="margin-top:8px"><label class="btnlike small"><input type="file" accept="image/*" multiple class="vh" data-gal="${scope}">Фото из галереи</label></div>`; }
+function refreshTiles(scope){ document.querySelectorAll(`[data-tiles="${scope}"]`).forEach(el=>{ el.innerHTML = tilesInner(scope); fillImgs(el); }); }
+function stampLines(scope, when){ const r = scopeRec(scope), o = r ? db.objects.find(x=>x.id===r.objId) : curObj();
+  const g = (r ? r.geo : draft.geo) || (o && o.geo), place = (r ? r.place : draft.place) || (o ? [o.name, o.address].filter(Boolean).join(", ") : "");
+  return [when.toLocaleString("ru-RU",{dateStyle:"short",timeStyle:"short"}), place, g ? geoTxt(g) : ""]; }
+function loadImage(src){ return new Promise((res,rej)=>{ const im = new Image(); im.onload = ()=>res(im); im.onerror = rej; im.src = src; }); }
+// подпись внизу снимка: дата, место, координаты
+async function stampImage(blob, lines){ const u = URL.createObjectURL(blob);
+  try{ const img = await loadImage(u); const w = img.naturalWidth, h = img.naturalHeight, c = document.createElement("canvas"); c.width = w; c.height = h;
+    const g = c.getContext("2d"); g.drawImage(img,0,0);
+    const fs = Math.max(14,Math.round(w*0.032)), pad = Math.round(fs*0.6), lh = Math.round(fs*1.3);
+    g.font = "600 "+fs+"px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"; g.textBaseline = "top";
+    const out = [];
+    lines.filter(Boolean).forEach(t=>{ let cur = ""; String(t).split(" ").forEach(wd=>{ const test = cur ? cur+" "+wd : wd;
+      if(g.measureText(test).width>w-2*pad && cur){ out.push(cur); cur = wd; } else cur = test; }); if(cur) out.push(cur); });
+    if(!out.length) return blob;
+    const bh = out.length*lh+pad*2-Math.round((lh-fs)/2);
+    g.fillStyle = "rgba(0,0,0,0.58)"; g.fillRect(0,h-bh,w,bh); g.fillStyle = "#fff";
+    out.forEach((t,i)=>g.fillText(t,pad,h-bh+pad+i*lh));
+    return await new Promise(res=>c.toBlob(b=>res(b||blob), "image/jpeg", .82));
+  }catch(e){ return blob; } finally{ URL.revokeObjectURL(u); } }
+async function setSlotPhoto(scope, slot, file){
+  let b = await resize(file);
+  if(db.settings.stamp) b = await stampImage(b, stampLines(scope, new Date(file.lastModified||Date.now())));
+  const id = uid(); if(!await putPhoto(id,b)){ alert("Фото не сохранилось: память недоступна."); return; }
+  const s = scopeSlots(scope), old = s[slot]; s[slot] = id;
+  const r = scopeRec(scope); if(r){ syncPhotos(r); save(); }
+  if(old) forgetPhoto(old);
+  refreshTiles(scope); toast(SLOTN[slot]+": фото сохранено");
+}
+async function addGallery(scope, files){ for(const f of files){ const s = scopeSlots(scope), k = SLOTS.map(x=>x[0]).find(x=>!s[x]);
+  if(!k){ toast("Все окошки заняты. Нажмите на фото, чтобы заменить."); return; } await setSlotPhoto(scope, k, f); } }
+function removeSlotPhoto(scope, slot){ const s = scopeSlots(scope), id = s[slot]; if(!id) return; s[slot] = null;
+  const r = scopeRec(scope); if(r){ syncPhotos(r); save(); } forgetPhoto(id); refreshTiles(scope); }
+document.addEventListener("change", e=>{ const t = e.target; if(!t.dataset) return;
+  if(t.dataset.pick){ const tile = t.closest("[data-slot]"), f = t.files && t.files[0]; t.value = ""; if(tile && f) setSlotPhoto(tile.dataset.scope, tile.dataset.slot, f); }
+  else if(t.dataset.gal){ const fs = [...t.files]; t.value = ""; addGallery(t.dataset.gal, fs); } });
+document.addEventListener("click", e=>{ const t = e.target.closest && e.target.closest(".tile.has"); if(t) showPhoto(t.dataset.pid, {scope:t.dataset.scope, slot:t.dataset.slot}); });
+
+/* ==== ОТЧЁТ С ФОТО И ПОЛНАЯ РЕЗЕРВНАЯ КОПИЯ ==== */
+function blobToDataURL(b){ return new Promise(res=>{ const r = new FileReader(); r.onload = ()=>res(r.result); r.onerror = ()=>res(null); r.readAsDataURL(b); }); }
+function dataURLtoBlob(d){ const i = d.indexOf(","), mime = (d.slice(0,i).match(/data:([^;]+)/)||[])[1]||"image/jpeg", bin = atob(d.slice(i+1));
+  const a = new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) a[k] = bin.charCodeAt(k); return new Blob([a],{type:mime}); }
+const BADK = ["bad","bad2","old","relax"];
+async function buildReport(objId, onlyBad){
+  const o = db.objects.find(x=>x.id===objId); if(!o) return "";
+  const all = exportRows(objId), rows = all.filter(({v})=>!onlyBad||BADK.includes(v.k));
+  const cnt = {}; all.forEach(({v})=>{ const k = RES[v.k][0]; cnt[k] = (cnt[k]||0)+1; });
+  const dt = t=>new Date(t).toLocaleString("ru-RU",{dateStyle:"short",timeStyle:"short"});
+  let body = "";
+  for(const [i,{r,v}] of rows.entries()){ const ru = v.ru, s = ensureSlots(r), g = r.geo || o.geo; let ph = "";
+    for(const [k,cap] of [...SLOTS, ...(r.extra||[]).map((id,j)=>["x"+j,"Фото"])]){ const id = k[0]==="x" ? r.extra[+k.slice(1)] : s[k]; if(!id) continue;
+      const b = await getPhoto(id); const d = b && await blobToDataURL(b); if(d) ph += `<figure><img src="${d}" alt="${cap}"><figcaption>${cap}</figcaption></figure>`; }
+    const tr = (a,b)=>b?`<tr><th>${a}</th><td>${b}</td></tr>`:"";
+    body += `<section><h3>${i+1}. ${esc(ru.name)}</h3><p class="res ${RES[v.k][1]}">${RES[v.k][0]}</p><table>
+      ${tr("Факт", fmt(r.value)+" "+esc(ru.unit))}
+      ${tr("Требуется", esc(ru.min!==undefined?normText(ru):"")+(relaxText(ru)?" (при реконструкции — "+esc(relaxText(ru))+")":""))}
+      ${tr("Основание", esc(ru.clause)+", "+esc(ru.doc)+(ru.status&&ru.status!=="ok"?" — "+esc(STATUS[ru.status]):""))}
+      ${v.baseK==="relax"?tr("Условие допуска", esc(ru.cond||"—")+" — <b>"+esc(condState(v,r))+"</b>"):""}
+      ${tr("Опыт эксперта", esc(r.exp))}${tr("Что реально сделать", esc(r.fix))}${tr("Комментарий", esc(r.comment))}
+      ${tr("Место и время", [esc(r.place||""), g?`<a href="${mapLink(g)}">${geoTxt(g)}</a>`:"", dt(r.ts)].filter(Boolean).join(" · "))}
+      </table>${ph?`<div class="ph">${ph}</div>`:""}</section>`; }
+  const og = o.geo ? ` · <a href="${mapLink(o.geo)}">${geoTxt(o.geo)}</a>` : "";
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(o.name)} — обследование доступности</title><style>
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;max-width:860px;margin:0 auto;padding:16px;color:#14213d;line-height:1.4}
+h1{font-size:24px;margin:0 0 4px}h3{margin:0 0 6px;font-size:19px}.muted{color:#5b6678}
+section{border:1px solid #d5dbe6;border-radius:12px;padding:12px 14px;margin:14px 0;break-inside:avoid}
+table{border-collapse:collapse;width:100%;font-size:15px}th{text-align:left;vertical-align:top;width:34%;color:#5b6678;font-weight:600;padding:4px 8px 4px 0}td{padding:4px 0}
+.res{display:inline-block;margin:0 0 8px;padding:3px 10px;border-radius:999px;font-weight:700}.ok{background:#d8f3dc;color:#1b5e20}.bad{background:#ffd9d9;color:#9b1c1c}.relax,.old{background:#fff0c2;color:#7a5200}.nonorm{background:#e5e7eb;color:#374151}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:10px}figure{margin:0}figure img{width:100%;border-radius:8px;display:block}figcaption{font-size:13px;color:#5b6678}
+a{color:#1F3864}@media print{body{padding:0}a{color:inherit;text-decoration:none}}
+</style></head><body>
+<p class="muted">Мастерская Горыныча: Экспертиза на колёсах · Новосибирск</p>
+<h1>${esc(o.name)}</h1>
+<p>Адрес: ${esc(o.address||"—")}${og}<br>Здание: ${esc(BST[o.bstatus]||"—")}${o.year?", "+esc(o.year)+" г.":""}<br>Дата отчёта: ${new Date().toLocaleDateString("ru-RU")}</p>
+<p class="muted">Метод «тройственный взгляд»: опыт эксперта с инвалидностью, нормы (своды правил и закон) и реализуемость — что реально может сделать объект или мэрия.</p>
+${o.bstatus==="old"?"<p><b>Примечание:</b> здание введено до 01.07.2016 и не реконструировалось; отклонения — несоответствие современным требованиям, просим принять меры по приспособлению.</p>":""}
+<p><b>${onlyBad?"Выявленные несоответствия":"Результаты замеров"}:</b> ${rows.length}${onlyBad?"":" · "+Object.entries(cnt).map(([k,n])=>esc(k)+": "+n).join(" · ")}</p>
+${body||"<p>—</p>"}
+<p class="muted">Нормы: ${esc(NORMS_VERSION)}. Значения норм должны быть сверены с действующей редакцией свода правил. Результат — рабочая подсказка, а не юридическое заключение.</p>
+</body></html>`;
+}
+async function buildBackup(){ const photos = {}, ids = new Set(); db.records.forEach(r=>(r.photos||[]).forEach(id=>ids.add(id)));
+  for(const id of ids){ const b = await getPhoto(id); const d = b && await blobToDataURL(b); if(d) photos[id] = d; }
+  return {text:JSON.stringify({app:"gorynych-dostup", v:2, saved:new Date().toISOString(), db, photos}), n:Object.keys(photos).length}; }
 
 load();
 openIDB().then(render);

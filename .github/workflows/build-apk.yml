@@ -34,16 +34,22 @@ jobs:
       - name: Установка зависимостей
         run: npm install --no-audit --no-fund
 
+      - name: Карта (Leaflet) внутрь приложения
+        run: |
+          mkdir -p www/leaflet
+          cp -r node_modules/leaflet/dist/. www/leaflet/
+          ls www/leaflet
+
       - name: Создание Android-проекта
         run: npx cap add android
 
-      - name: Разрешение камеры и номер версии
+      - name: Разрешения (камера, геолокация) и номер версии
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>#' "$MANIFEST"
+          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" android:required="false" />\n</manifest>#' "$MANIFEST"
           sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
           grep -n "versionCode\|versionName" android/app/build.gradle
-          grep -n "CAMERA" "$MANIFEST"
+          grep -n "CAMERA\|LOCATION" "$MANIFEST"
 
       - name: Иконка приложения (адаптивная, синий фон и символ)
         run: |
@@ -147,13 +153,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: gorynych-dostupnost-apk
-          path: gorynych-dostupnost.apk
+          path: |
+            gorynych-dostupnost.apk
+            gorynych-dostupnost-google-play.aab
+          if-no-files-found: warn
 
       - name: Удалить ключи с сервера сборки
         if: always()
         run: rm -f "$RUNNER_TEMP/sideload.jks" "$RUNNER_TEMP/upload.jks"
 
+      # в Releases (то, что ставят люди) — только из main; пробные сборки с других веток лежат в Actions → Artifacts
       - name: Публикация в Releases
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
