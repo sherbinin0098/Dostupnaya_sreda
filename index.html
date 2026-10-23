@@ -866,7 +866,7 @@ async function nativeShareBlob(name, blob){
 const KEY = "gorynych_dostup_v1";
 let db = { objects: [], records: [], overrides: {}, currentObj: null, settings: {stamp:true} };
 function load(){ try{ const s = localStorage.getItem(KEY); if(s) db = Object.assign(db, JSON.parse(s)); }catch(e){}
-  db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; o.year = o.year||""; } });
+  db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; } });
   db.settings = Object.assign({stamp:true}, db.settings||{}); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert("Не удалось сохранить: память браузера недоступна."); } }
 
@@ -990,7 +990,7 @@ function renderMeasure(){
   let h = `<div class="card"><label for="objsel">Объект</label>
     <select id="objsel"><option value="">— выберите объект —</option>${db.objects.map(x=>`<option value="${x.id}" ${x.id===db.currentObj?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
     <div class="row" style="margin-top:10px"><button id="newobj" class="small">Новый объект</button>${o?`<button id="editobj" class="small">Изменить</button>`:""}</div>
-    ${o?`<p class="muted">${esc(o.address||"")}<br>${esc(BST[o.bstatus]||"")}${o.year?" · "+esc(o.year)+" г.":""}</p>`:""}</div>`;
+    ${o?`<p class="muted">${esc(o.address||"")}<br>${esc(BST[o.bstatus]||"")}</p>`:""}</div>`;
   if(!o){ h += `<div class="card">Сначала добавьте объект: название, адрес и пометка, существующее ли здание.</div>`; app.innerHTML=h; bindObj(); return; }
   const gs = groups();
   const rs = allRules().filter(r=>!draft.group||r.group===draft.group);
@@ -1061,7 +1061,6 @@ function objForm(o){
     <div class="row" style="margin-top:6px"><button type="button" class="small" id="ohere">📍 Я здесь</button><button type="button" class="small" id="omap">На карте</button></div>
     <label for="oe">Строительство или реконструкция завершены позже 1 июля 2016 года?</label>
     <select id="oe">${[["new","Да — новое строительство"],["recon","Да — реконструкция"],["old","Нет — раньше, с тех пор не реконструировалось"],["unknown","Не знаю (уточню)"]].map(([k,t])=>`<option value="${k}" ${((o?o.bstatus:"unknown")===k)?"selected":""}>${t}</option>`).join("")}</select>
-    <label for="oy">Год постройки или последней реконструкции (если известен)</label><input id="oy" type="text" inputmode="numeric" value="${esc(o?o.year:"")}" placeholder="например 1987">
     <p class="muted">От этого зависит, какие нормы обязательны: после 01.07.2016 — современные; для старых зданий отклонение не считается нарушением размеров.</p>
     <div class="row"><button class="primary" id="osave">Сохранить</button><button id="ocancel">Отмена</button></div>
     ${o?`<div style="margin-top:12px"><button class="danger small" id="odel">Удалить объект и его замеры</button></div>`:""}</div>`;
@@ -1076,7 +1075,7 @@ function objForm(o){
   document.getElementById("ocancel").onclick = ()=>renderMeasure();
   document.getElementById("osave").onclick = ()=>{
     const name = document.getElementById("on").value.trim(); if(!name){ alert("Введите название."); return; }
-    const data = { name, address:document.getElementById("oa").value.trim(), bstatus:document.getElementById("oe").value, year:document.getElementById("oy").value.trim(), geo:fg }; data.existing = data.bstatus!=="new";
+    const data = { name, address:document.getElementById("oa").value.trim(), bstatus:document.getElementById("oe").value, geo:fg }; data.existing = data.bstatus!=="new";
     if(o) Object.assign(o,data); else { const n = Object.assign({id:uid()},data); db.objects.push(n); db.currentObj = n.id; }
     save(); renderMeasure();
   };
@@ -1192,17 +1191,17 @@ function exportRows(objId){
 function csvEsc(s){ s = String(s==null?"":s); return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
 function condState(v, r){ return v.baseK!=="relax" ? "" : (r.cond===true?"выполнено":r.cond===false?"не выполнено":"не проверено"); }
 function buildCSV(objId){
-  const head = ["Дата","Объект","Адрес","Статус здания","Год","Код правила","Параметр","Ед.","Факт","Норма","Результат","Пункт и документ","Статус проверки нормы","Условие допуска","Условие проверено","Комментарий","Опыт эксперта","Что реально сделать","Место замера","Координаты","Карта","Фото, шт."];
+  const head = ["Дата","Объект","Адрес","Статус здания","Код правила","Параметр","Ед.","Факт","Норма","Результат","Пункт и документ","Статус проверки нормы","Условие допуска","Условие проверено","Комментарий","Опыт эксперта","Что реально сделать","Место замера","Координаты","Карта","Фото, шт."];
   const lines = [head.join(";")];
   exportRows(objId).forEach(({r,v})=>{ const ru=v.ru, ob=v.ob, g=r.geo||(ob&&ob.geo);
-    lines.push([new Date(r.ts).toLocaleDateString("ru-RU"), ob?ob.name:"", ob?ob.address:"", ob?(BST[ob.bstatus]||""):"", ob?ob.year:"", ru.id||r.ruleId, ru.name, ru.unit, fmt(r.value),
+    lines.push([new Date(r.ts).toLocaleDateString("ru-RU"), ob?ob.name:"", ob?ob.address:"", ob?(BST[ob.bstatus]||""):"", ru.id||r.ruleId, ru.name, ru.unit, fmt(r.value),
       ru.min!==undefined?normText(ru):"", RES[v.k][0], (ru.clause||"")+", "+(ru.doc||""), STATUS[ru.status]||"", v.baseK==="relax"?(ru.cond||""):"", condState(v,r), r.comment, r.exp||"", r.fix||"", r.place||"", g?geoTxt(g):"", g?mapLink(g):"", (r.photos||[]).length].map(csvEsc).join(";")); });
   return "\ufeff"+lines.join("\r\n");
 }
 function buildText(objId, onlyBad){
   const o = db.objects.find(x=>x.id===objId); if(!o) return "";
   const rows = exportRows(objId).filter(({v})=>!onlyBad||["bad","bad2","old","relax"].includes(v.k));
-  let t = `Объект: ${o.name}\nАдрес: ${o.address||"—"}${o.geo?" ("+mapLink(o.geo)+")":""}\nЗдание: ${BST[o.bstatus]||"—"}${o.year?", "+o.year+" г.":""}\nДата: ${new Date().toLocaleDateString("ru-RU")}\n\n`;
+  let t = `Объект: ${o.name}\nАдрес: ${o.address||"—"}${o.geo?" ("+mapLink(o.geo)+")":""}\nЗдание: ${BST[o.bstatus]||"—"}\nДата: ${new Date().toLocaleDateString("ru-RU")}\n\n`;
   if(o.bstatus==="old") t += "Примечание: здание введено до 01.07.2016 и не реконструировалось; приведённые отклонения — несоответствие современным требованиям, просим принять меры по приспособлению.\n\n";
   t += onlyBad?"Выявленные несоответствия:\n":"Результаты замеров:\n";
   rows.forEach(({r,v},i)=>{ const ru=v.ru; t += `${i+1}. ${ru.name}: факт ${fmt(r.value)} ${ru.unit}; требуется ${ru.min!==undefined?normText(ru):""} (${ru.clause}, ${ru.doc}) — ${RES[v.k][0]}.`
@@ -1541,7 +1540,7 @@ a{color:#1F3864}@media print{body{padding:0}a{color:inherit;text-decoration:none
 </style></head><body>
 <p class="muted">Мастерская Горыныча: Экспертиза на колёсах · Новосибирск</p>
 <h1>${esc(o.name)}</h1>
-<p>Адрес: ${esc(o.address||"—")}${og}<br>Здание: ${esc(BST[o.bstatus]||"—")}${o.year?", "+esc(o.year)+" г.":""}<br>Дата отчёта: ${new Date().toLocaleDateString("ru-RU")}</p>
+<p>Адрес: ${esc(o.address||"—")}${og}<br>Здание: ${esc(BST[o.bstatus]||"—")}<br>Дата отчёта: ${new Date().toLocaleDateString("ru-RU")}</p>
 <p class="muted">Метод «тройственный взгляд»: опыт эксперта с инвалидностью, нормы (своды правил и закон) и реализуемость — что реально может сделать объект или мэрия.</p>
 ${o.bstatus==="old"?"<p><b>Примечание:</b> здание введено до 01.07.2016 и не реконструировалось; отклонения — несоответствие современным требованиям, просим принять меры по приспособлению.</p>":""}
 <p><b>${onlyBad?"Выявленные несоответствия":"Результаты замеров"}:</b> ${rows.length}${onlyBad?"":" · "+Object.entries(cnt).map(([k,n])=>esc(k)+": "+n).join(" · ")}</p>
