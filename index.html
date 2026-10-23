@@ -943,6 +943,14 @@ function blobToB64(blob){ return new Promise(res=>{ const r = new FileReader(); 
 async function nativeShareBlob(name, blob){
   const data = await blobToB64(blob);
   const w = await NFs.writeFile({ path:name, data, directory:"CACHE" });
+  // проверка: файл на телефоне должен совпасть с тем, что записали (иначе получатель увидит пустой файл)
+  let ok = true;
+  try{ const back = await nCall("Filesystem","readFile",{ path:name, directory:"CACHE" }); const bd = String((back&&back.data)||"").replace(/\s/g,"");
+    if(bd.slice(0,300) !== data.slice(0,300) || Math.abs(bd.length-data.length)>4) ok = false; }catch(e){ ok = true; }
+  if(!ok){
+    if(/^(text|application\/json)/.test(blob.type||"")){ alert("Файл записался с ошибкой. Отправляю содержимое текстом: вставьте его получателю как обычное сообщение."); await NShare.share({ title:name, text:await blob.text() }); return; }
+    alert("Файл записался с ошибкой, отправка отменена. Попробуйте ещё раз."); return;
+  }
   await NShare.share({ title:name, url:w.uri });
 }
 
@@ -1306,7 +1314,7 @@ function renderExport(){
    <div class="row" style="margin-top:10px"><button id="epass">Справка о результатах обследования</button><button id="epub">Данные для публичной карты</button></div>
    <div class="row" style="margin-top:10px"><button id="ecmp">До и после: отчёт</button><button id="ecmpt">До и после: текст</button></div>
    <div class="row" style="margin-top:10px"><button id="etxt">Текст для акта</button><button id="ebad">Текст для обращения (только нарушения)</button></div>
-   <pre id="eprev" class="hidden"></pre><div class="row hidden" id="ebtns"><button id="ecopy" class="small">Копировать</button><button id="eshare" class="small">Поделиться</button></div></div>
+   <pre id="eprev" class="hidden"></pre><div class="row hidden" id="ebtns"><button id="ecopy" class="small">Копировать</button><button id="eshare" class="small">Поделиться текстом</button><button id="efile" class="small">Файлом</button></div></div>
    <div class="card"><h3 style="margin-top:0">Резервная копия</h3><p class="muted">Все данные хранятся только в этом телефоне. Копия — один файл со всеми объектами, замерами и фото. Сохраните её в облако или отправьте себе: с ней всё переносится на новый телефон.</p>
    <div class="row"><button id="ebk" class="small">Сохранить копию</button><button id="eim" class="small">Загрузить копию</button></div><input type="file" id="eimf" accept=".json" class="hidden"></div>`;
   bindBack();
@@ -1326,6 +1334,7 @@ function renderExport(){
   byId("epass").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю справку…"); await shareOrDownload("spravka_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildPassport(o.id), "text/html"); };
   byId("epass2").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю паспорт…"); await shareOrDownload("pasport_dostupnosti_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildOfficialPassport(o.id), "text/html"); };
   byId("epub").onclick = exportPublic;
+  byId("efile").onclick = ()=>{ const t = byId("eprev").textContent; if(!t) return; const nm = pubLast && pubLast.text===t ? pubLast.name : "tekst_"+new Date().toISOString().slice(0,10)+".txt"; shareOrDownload(nm, t, /^\{/.test(t)?"application/json":"text/plain"); };
   byId("ecmp").onclick = async ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования. Нажмите «Повторное обследование» на вкладке «Замер»."); return; } toast("Готовлю отчёт…"); await shareOrDownload("do_i_posle_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await cmpReport(o), "text/html"); };
   byId("ecmpt").onclick = ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования."); return; } const p = byId("eprev"); p.textContent = cmpText(o); p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); };
   document.getElementById("ebk").onclick = async ()=>{ toast("Собираю копию…"); const bk = await buildBackup();
@@ -2012,12 +2021,15 @@ function publicData(){
   });
   return {out, skipped};
 }
+let pubLast = null;
 async function exportPublic(){
   const d = publicData();
   if(!d.out.length){ alert("Нет объектов для карты: нужны замеры и отмеченное место объекта (кнопка «Я здесь» или «На карте»)."); return; }
   const msg = "На публичную карту уйдут только: название, адрес, координаты, результаты замеров, нарушения с нормами и пунктами, а также обращения: кому, когда, о чём просили, срок, ответ и итог (без номера обращения). Фото и ваши заметки не передаются.\n\nОбъектов: "+d.out.length+(d.skipped.length?"\nБез места на карте (не войдут): "+d.skipped.join(", "):"")+"\n\nСоздать файл?";
   if(!confirm(msg)) return;
-  await shareOrDownload("karta_dannye_"+new Date().toISOString().slice(0,10)+".json", JSON.stringify({app:"gorynych-karta", v:1, updated:new Date().toISOString(), objects:d.out}), "application/json");
+  const name = "karta_dannye_"+new Date().toISOString().slice(0,10)+".json", text = JSON.stringify({app:"gorynych-karta", v:1, updated:new Date().toISOString(), objects:d.out});
+  pubLast = {name, text}; const p = byId("eprev"); p.textContent = text; p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); p.scrollIntoView({block:"center"});
+  toast("Готово: «Копировать» или «Файлом»");
 }
 
 /* ==== ПАСПОРТ ДОСТУПНОСТИ ОСИ по форме приложения А.2 к приказу Минтруда России от 25.12.2012 № 627 ==== */
