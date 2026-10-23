@@ -11,6 +11,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SIDELOAD_PASSWORD: ${{ secrets.SIDELOAD_PASSWORD }}
+      UPLOAD_PASSWORD: ${{ secrets.UPLOAD_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,17 +59,45 @@ jobs:
             rm -f "$RES/mipmap-$d/ic_launcher_foreground.png"
           done
 
-      - name: Постоянный ключ подписи только для этого приложения (чтобы обновлялось поверх)
+      - name: Ключи подписи из секретов GitHub
+        env:
+          SIDELOAD_KEYSTORE: ${{ secrets.SIDELOAD_KEYSTORE }}
+          UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
         run: |
+          if [ -z "$SIDELOAD_KEYSTORE" ] || [ -z "$SIDELOAD_PASSWORD" ]; then
+            echo "::error::Нет секретов SIDELOAD_KEYSTORE / SIDELOAD_PASSWORD (Settings - Secrets and variables - Actions)"
+            exit 1
+          fi
+          echo "$SIDELOAD_KEYSTORE" | base64 -d > "$RUNNER_TEMP/sideload.jks"
+          echo "SIDELOAD_KEYSTORE_FILE=$RUNNER_TEMP/sideload.jks" >> "$GITHUB_ENV"
+          if [ -n "$UPLOAD_KEYSTORE" ] && [ -n "$UPLOAD_PASSWORD" ]; then
+            echo "$UPLOAD_KEYSTORE" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "UPLOAD_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          fi
           cat >> android/app/build.gradle <<'EOF'
 
           android {
               signingConfigs {
                   debug {
-                      storeFile file("${rootDir}/../gorynych-sideload.keystore")
-                      storePassword "gorynych-sideload"
-                      keyAlias "gorynych"
-                      keyPassword "gorynych-sideload"
+                      storeFile file(System.getenv('SIDELOAD_KEYSTORE_FILE'))
+                      storePassword System.getenv('SIDELOAD_PASSWORD')
+                      keyAlias 'sideload'
+                      keyPassword System.getenv('SIDELOAD_PASSWORD')
+                  }
+                  if (System.getenv('UPLOAD_KEYSTORE_FILE')) {
+                      play {
+                          storeFile file(System.getenv('UPLOAD_KEYSTORE_FILE'))
+                          storePassword System.getenv('UPLOAD_PASSWORD')
+                          keyAlias 'upload'
+                          keyPassword System.getenv('UPLOAD_PASSWORD')
+                      }
+                  }
+              }
+              if (System.getenv('UPLOAD_KEYSTORE_FILE')) {
+                  buildTypes {
+                      release {
+                          signingConfig signingConfigs.play
+                      }
                   }
               }
           }
@@ -82,10 +113,17 @@ jobs:
       - name: Подготовка файла
         run: cp android/app/build/outputs/apk/debug/app-debug.apk gorynych-dostupnost.apk
 
-      - name: Проверка подписи постоянным ключом
+      - name: Пакет для Google Play (AAB, ключ загрузки)
+        if: env.UPLOAD_KEYSTORE_FILE != ''
+        working-directory: android
+        run: |
+          ./gradlew bundleRelease --no-daemon
+          cp app/build/outputs/bundle/release/app-release.aab ../gorynych-dostupnost-google-play.aab
+
+      - name: Проверка подписи ключом из секрета
         run: |
           APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
-          EXPECTED=$(keytool -exportcert -alias gorynych -keystore gorynych-sideload.keystore -storepass gorynych-sideload | sha256sum | cut -d' ' -f1)
+          EXPECTED=$(keytool -exportcert -alias sideload -keystore "$SIDELOAD_KEYSTORE_FILE" -storepass:env SIDELOAD_PASSWORD | sha256sum | cut -d' ' -f1)
           ACTUAL=$("$APKSIGNER" verify --print-certs gorynych-dostupnost.apk | grep -m1 'SHA-256 digest' | awk '{print $NF}')
           echo "ожидается: $EXPECTED"
           echo "в APK:     $ACTUAL"
@@ -96,10 +134,16 @@ jobs:
           name: gorynych-dostupnost-apk
           path: gorynych-dostupnost.apk
 
+      - name: Удалить ключи с сервера сборки
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sideload.jks" "$RUNNER_TEMP/upload.jks"
+
       - name: Публикация в Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Сборка ${{ github.run_number }}
           body: "APK: gorynych-dostupnost.apk. Нормы: СП 59.13330.2020, СП 140.13330.2024."
-          files: gorynych-dostupnost.apk
+          files: |
+            gorynych-dostupnost.apk
+            gorynych-dostupnost-google-play.aab
