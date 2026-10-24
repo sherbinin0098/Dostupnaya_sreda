@@ -306,6 +306,21 @@ const RULES = [
 "cond": ""
 },
 {
+"id": "R141",
+"group": "Пути движения",
+"name": "Продольный уклон пешеходного пути",
+"unit": "‰",
+"min": null,
+"max": 40,
+"amin": null,
+"amax": null,
+"clause": "п. 5.1.7",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "В климатических районах I и II по СП 131.13330 (Новосибирск — район I) продольный уклон пешеходных путей, кроме лестниц и пандусов, не более 40‰ (1:25); в других районах — не более 50‰ (1:20). В стеснённых условиях 40–80‰ на длине до 50 м — с ограждением и поручнями 0,9 м.",
+"cond": ""
+},
+{
 "id": "R12",
 "group": "Пандус",
 "name": "Продольный уклон пандуса",
@@ -317,7 +332,7 @@ const RULES = [
 "clause": "п. 5.1.14, табл. 5.1",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "80‰ = 1:12,5. До 100‰ только в стеснённых условиях при длине наклонной плоскости до 5 м и с сопровождающим. Допустимая длина марша зависит от уклона — см. вкладку «Пандус».",
+"note": "80‰ = 1:12,5. До 100‰ только в стеснённых условиях при длине наклонной плоскости до 5 м и с сопровождающим. Допустимая длина марша зависит от уклона — см. вкладку «Расчёты» (калькулятор пандуса).",
 "cond": "Стеснённые условия, длина наклонной плоскости не более 5 м, по пандусу помогает сопровождающее лицо (п. 5.1.14)."
 },
 {
@@ -340,14 +355,14 @@ const RULES = [
 "group": "Пандус",
 "name": "Высота верхнего поручня",
 "unit": "мм",
-"min": 900,
-"max": 900,
+"min": 870,
+"max": 930,
 "amin": null,
 "amax": null,
-"clause": "п. 5.1.16",
+"clause": "п. 5.1.16, 6.2.8",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "Поручни двусторонние: верхний 900 мм.",
+"note": "Верхний поручень на высоте 900 мм; отклонение в размерах поручней допускается ±30 мм (п. 6.2.8), то есть 870–930 мм.",
 "cond": ""
 },
 {
@@ -355,14 +370,14 @@ const RULES = [
 "group": "Пандус",
 "name": "Высота нижнего поручня",
 "unit": "мм",
-"min": 700,
-"max": 700,
+"min": 670,
+"max": 730,
 "amin": null,
 "amax": null,
-"clause": "п. 5.1.16",
+"clause": "п. 5.1.16, 6.2.8",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "Нижний 700 мм.",
+"note": "Нижний поручень на высоте 700 мм; отклонение в размерах поручней допускается ±30 мм (п. 6.2.8), то есть 670–730 мм.",
 "cond": ""
 },
 {
@@ -490,14 +505,14 @@ const RULES = [
 "group": "Пандус",
 "name": "Вылет поручня за начало и конец марша",
 "unit": "мм",
-"min": 300,
+"min": 270,
 "max": null,
 "amin": null,
 "amax": null,
-"clause": "п. 6.2.11, 5.1.13",
+"clause": "п. 5.1.13, 6.2.11, 6.2.8",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "Горизонтальные завершения поручня пандуса в начале и конце — не менее (300 ± 30) мм, с нетравмирующим завершением (ГОСТ Р 51261-2025, п. 5.2.3); за границы марша на 300 мм (СП 59, п. 6.2.11, 5.1.13).",
+"note": "Горизонтальные завершения поручня в начале и конце марша — 300 мм за границы марша (СП 59, п. 5.1.13, 6.2.11), допуск ±30 мм (п. 6.2.8); по ГОСТ Р 51261-2025, п. 5.2.3 — не менее (300 ± 30) мм, с нетравмирующим завершением.",
 "cond": ""
 },
 {
@@ -618,6 +633,36 @@ const RULES = [
 "doc": "ГОСТ Р 51261-2025",
 "status": "ok",
 "note": "С учётом отклонения ±0,5 мм по п. 5.1.4.",
+"cond": ""
+},
+{
+"id": "R142",
+"group": "Туалет (универсальная кабина)",
+"name": "Ширина свободной зоны сбоку от унитаза",
+"unit": "мм",
+"min": 800,
+"max": null,
+"amin": 750,
+"amax": null,
+"clause": "п. 6.3.3, 6.3.6",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "Сбоку от унитаза — пространство шириной не менее 0,8 м для кресла-коляски (п. 6.3.3). При реконструкции в кабине 1,5 × 1,5 м — не менее 0,75 м (п. 6.3.6); то же в ГОСТ Р 51261-2025, рис. 23–25.",
+"cond": "Реконструкция: доступная кабина 1,5 × 1,5 м, дверь с автодоводчиком и кнопкой у зоны пересадки (п. 6.3.6)."
+},
+{
+"id": "R143",
+"group": "Туалет (универсальная кабина)",
+"name": "Диаметр зоны разворота коляски в кабине",
+"unit": "мм",
+"min": 1400,
+"max": null,
+"amin": null,
+"amax": null,
+"clause": "п. 6.3.3",
+"doc": "СП 59.13330.2020",
+"status": "ok",
+"note": "В кабине — свободное пространство диаметром 1,4 м для разворота кресла-коляски. При реконструкции в кабине 1,5 × 1,5 м разворот не предусмотрен (п. 6.3.6) — в этом случае отметьте пункт «нет такого».",
 "cond": ""
 },
 {
@@ -902,7 +947,7 @@ const RULES = [
 "clause": "п. 5.2.2",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "Не далее 50 м от входа в предприятие, организацию, учреждение; от входа в жилое здание — не далее 100 м; при реконструкции и сложной конфигурации участка — до 150 м.",
+"note": "Не далее 50 м от входа в предприятие, организацию, учреждение; от входа в жилое здание — не далее 100 м; при реконструкции и сложной конфигурации участка — до 150 м. По Изменению № 4 до входов в подъезды жилых зданий и объекты социальной инфраструктуры допускается до 200 м при условиях п. 5.2.2 (путь шириной от 2 м, освещение, скамьи через 50 м, навесы через 100 м и место высадки не далее 50 м от входа) — такой случай отметьте в комментарии.",
 "cond": "Реконструкция или сложная конфигурация земельного участка (п. 5.2.2). Для жилого дома предел — 100 м."
 },
 {
@@ -1330,14 +1375,14 @@ const RULES = [
 "group": "Места обслуживания",
 "name": "Высота поверхности стола, прилавка, окна кассы",
 "unit": "мм",
-"min": 800,
+"min": null,
 "max": 850,
 "amin": null,
 "amax": null,
 "clause": "п. 8.1.7",
 "doc": "СП 59.13330.2020",
 "status": "ok",
-"note": "Поверхность столов индивидуального пользования, прилавков, низа окон касс и справочных — не выше 0,80–0,85 м над полом.",
+"note": "Поверхность столов индивидуального пользования, прилавков, низа окон касс и справочных — на высоте не более 0,80–0,85 м над полом; часть стойки или прилавка — высотой 0,85 м. Нижней границы СП не задаёт (под столом нужен проём для ног 0,75 м — см. отдельный пункт).",
 "cond": ""
 },
 {
@@ -1411,8 +1456,8 @@ const RULES = [
 "amax": null,
 "clause": "п. 8.1.6",
 "doc": "СП 59.13330.2020",
-"status": "ok",
-"note": "Площадка для зрителей на креслах-колясках горизонтальная, уклон не более 1,5 %.",
+"status": "chk",
+"note": "В тексте п. 8.1.6: площадка горизонтальная, уклон «не более 1,5%». В копиях СП знак ‰ часто заменён на %, поэтому неясно: 1,5 % (15‰) или 1,5‰. В приложении взято 15‰; сверить с официальным изданием.",
 "cond": ""
 },
 {
@@ -1875,12 +1920,20 @@ async function nativeShareBlob(name, blob){
 /* ==== ХРАНИЛИЩЕ ==== */
 const KEY = "gorynych_dostup_v1";
 const LEGACY_M = ["R01", "R02", "R03", "R05", "R06", "R07", "R08", "R09", "R10", "R13", "R14", "R15", "R16", "R17", "R20", "R30", "R31", "R34", "R35", "R36", "R38", "R62", "R63", "R50", "R51", "R52", "R53", "R55", "R56", "R70", "R71", "R72"]; // параметры, которые раньше вводились в метрах, теперь в миллиметрах
-let db = { objects: [], records: [], overrides: {}, currentObj: null, settings: {stamp:true}, appeals: [], ver: 2 };
-function migrateUnits(d){ if(!d || d.ver>=2) return d; const set = new Set(LEGACY_M);
-  (d.records||[]).forEach(r=>{ if(set.has(r.ruleId) && typeof r.value==="number") r.value = Math.round(r.value*1000); });
-  Object.keys(d.overrides||{}).forEach(id=>{ if(!set.has(id)) return; const o = d.overrides[id]; ["min","max","amin","amax"].forEach(k=>{ if(typeof o[k]==="number" && o[k]<10) o[k] = Math.round(o[k]*1000); }); });
-  d.ver = 2; return d; }
-function load(){ try{ const s = localStorage.getItem(KEY); if(s){ const raw = JSON.parse(s); const was = raw.ver; db = Object.assign(db, migrateUnits(raw)); if(!was) save(); } }catch(e){}
+let db = { objects: [], records: [], overrides: {}, currentObj: null, settings: {stamp:true}, appeals: [], ver: 3 };
+function migrateUnits(d){ if(!d || d.ver>=3) return d; const set = new Set(LEGACY_M), base = id=>RULES.find(x=>x.id===id);
+  const mark = r=>{ r.comment = (r.comment ? r.comment+" " : "")+"[Проверьте значение: введено, когда поле было в метрах]"; };
+  if(!(d.ver>=2)){
+    (d.records||[]).forEach(r=>{ if(!set.has(r.ruleId) || typeof r.value!=="number") return; const ru = base(r.ruleId), mm = Math.round(r.value*1000);
+      if(ru && !plausible(ru, mm) && plausible(ru, r.value)) mark(r); else r.value = mm; }); // число явно введено в мм (например, порог «5») — не умножаем
+    Object.keys(d.overrides||{}).forEach(id=>{ if(!set.has(id)) return; const o = d.overrides[id]; ["min","max","amin","amax"].forEach(k=>{ if(typeof o[k]==="number" && o[k]<10) o[k] = Math.round(o[k]*1000); }); });
+  } else {
+    // версия 2 умножала на 1000 и такие числа: порог 5 → 5000 мм. Возвращаем введённое число и просим проверить
+    (d.records||[]).forEach(r=>{ if(!set.has(r.ruleId) || typeof r.value!=="number") return; const ru = base(r.ruleId), v = r.value/1000;
+      if(ru && Number.isInteger(v) && !plausible(ru, r.value) && plausible(ru, v)){ r.value = v; mark(r); } });
+  }
+  d.ver = 3; return d; }
+function load(){ try{ const s = localStorage.getItem(KEY); if(s){ const raw = JSON.parse(s); const was = raw.ver; db = Object.assign(db, migrateUnits(raw)); if(was!==db.ver) save(); } }catch(e){}
   db.objects.forEach(o=>{ if(o.bstatus===undefined){ o.bstatus = o.existing ? "unknown" : "new"; } });
   db.settings = Object.assign({stamp:true}, db.settings||{}); db.appeals = db.appeals||[]; }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert("Не удалось сохранить: память браузера недоступна."); }
@@ -2235,6 +2288,9 @@ function buildText(objId, onlyBad){
   t += "\nЗначения норм должны быть сверены с действующей редакцией свода правил.\n";
   return t;
 }
+// имя файла латиницей: кириллица в имени файла теряется в части браузеров и приложений
+const TRL = {а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+function fileSafe(name){ return String(name||"").toLowerCase().replace(/[а-яё]/g,c=>TRL[c]).replace(/[^0-9a-z]+/g,"_").replace(/^_+|_+$/g,"").slice(0,40) || "obekt"; }
 function download(name, text, type){ const b = new Blob([text],{type}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
 async function shareOrDownload(name, text, type){
   if(isNative){ try{ await nativeShareBlob(name, new Blob([text],{type})); }catch(e){ if(!(e&&/cancel/i.test(String(e.message||e)))) alert("Не удалось отправить файл."); } return; }
@@ -2268,17 +2324,17 @@ function renderExport(){
   document.getElementById("eshare").onclick = async ()=>{ const t = document.getElementById("eprev").textContent; try{ if(isNative){ await NShare.share({text:t}); return; } if(navigator.share) await navigator.share({text:t}); else toast("Поделиться не поддерживается"); }catch(e){} };
   const rep = async only=>{ const id = sel(); if(!id){ alert("Выберите конкретный объект."); return; } toast("Готовлю отчёт…");
     const o = db.objects.find(x=>x.id===id), html = await buildReport(id, only);
-    await shareOrDownload("otchet_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+"_"+new Date().toISOString().slice(0,10)+".html", html, "text/html"); };
+    await shareOrDownload("otchet_"+fileSafe(o.name)+"_"+new Date().toISOString().slice(0,10)+".html", html, "text/html"); };
   byId("erep").onclick = ()=>rep(false); byId("erepb").onclick = ()=>rep(true);
   const need = ()=>{ const id = sel(); if(!id){ alert("Выберите конкретный объект."); return null; } return db.objects.find(x=>x.id===id); };
-  byId("epass").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю справку…"); await shareOrDownload("spravka_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildPassport(o.id), "text/html"); };
-  byId("epass2").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю паспорт…"); await shareOrDownload("pasport_dostupnosti_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildOfficialPassport(o.id), "text/html"); };
+  byId("epass").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю справку…"); await shareOrDownload("spravka_"+fileSafe(o.name)+".html", await buildPassport(o.id), "text/html"); };
+  byId("epass2").onclick = async ()=>{ const o = need(); if(!o) return; toast("Готовлю паспорт…"); await shareOrDownload("pasport_dostupnosti_"+fileSafe(o.name)+".html", await buildOfficialPassport(o.id), "text/html"); };
   byId("epub").onclick = exportPublic;
   byId("eletter").onclick = ()=>{ const o = need(); if(!o) return; const p = byId("eprev"); p.textContent = buildLetter(o.id); p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); p.scrollIntoView({block:"center"}); };
-  const doc = (kind,pref)=>async()=>{ const o = need(); if(!o) return; toast("Готовлю документ…"); await shareOrDownload(pref+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await buildOfficialPassport(o.id, kind), "text/html"); };
+  const doc = (kind,pref)=>async()=>{ const o = need(); if(!o) return; toast("Готовлю документ…"); await shareOrDownload(pref+fileSafe(o.name)+".html", await buildOfficialPassport(o.id, kind), "text/html"); };
   byId("eact").onclick = doc("act","akt_obsledovaniya_"); byId("eank").onclick = doc("anketa","anketa_");
   byId("efile").onclick = ()=>{ const t = byId("eprev").textContent; if(!t) return; const nm = pubLast && pubLast.text===t ? pubLast.name : "tekst_"+new Date().toISOString().slice(0,10)+".txt"; shareOrDownload(nm, t, /^\{/.test(t)?"application/json":"text/plain"); };
-  byId("ecmp").onclick = async ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования. Нажмите «Повторное обследование» на вкладке «Замер»."); return; } toast("Готовлю отчёт…"); await shareOrDownload("do_i_posle_"+o.name.replace(/[^0-9a-zа-яё]+/gi,"_").slice(0,40)+".html", await cmpReport(o), "text/html"); };
+  byId("ecmp").onclick = async ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования. Нажмите «Повторное обследование» на вкладке «Замер»."); return; } toast("Готовлю отчёт…"); await shareOrDownload("do_i_posle_"+fileSafe(o.name)+".html", await cmpReport(o), "text/html"); };
   byId("ecmpt").onclick = ()=>{ const o = need(); if(!o) return; if(!cmpData(o)){ alert("У этого объекта ещё нет повторного обследования."); return; } const p = byId("eprev"); p.textContent = cmpText(o); p.classList.remove("hidden"); byId("ebtns").classList.remove("hidden"); };
   document.getElementById("ebk").onclick = async ()=>{ toast("Собираю копию…"); const bk = await buildBackup(); db.settings.lastBackup = Date.now(); save();
     await shareOrDownload("gorynych_backup_"+new Date().toISOString().slice(0,10)+".json", bk.text, "application/json"); };
@@ -2287,7 +2343,7 @@ function renderExport(){
   document.getElementById("eimf").onchange = e=>{ const f = e.target.files[0]; if(!f) return; const rd = new FileReader();
     rd.onload = async ()=>{ let d, nd; try{ d = JSON.parse(rd.result); nd = d && d.v===2 ? d.db : d; if(!nd||!Array.isArray(nd.objects)||!Array.isArray(nd.records)) throw 0; }catch(x){ alert("Файл не похож на копию."); return; }
       if(!confirm("Заменить текущие данные копией?")) return;
-      nd = migrateUnits(nd); db = Object.assign({objects:[],records:[],overrides:{},currentObj:null,ver:2}, nd); db.settings = Object.assign({stamp:true}, db.settings||{});
+      nd = migrateUnits(nd); db = Object.assign({objects:[],records:[],overrides:{},currentObj:null,ver:3}, nd); db.settings = Object.assign({stamp:true}, db.settings||{});
       let n = 0; if(d.v===2 && d.photos) for(const [pid,u] of Object.entries(d.photos)){ try{ if(await putPhoto(pid, dataURLtoBlob(u))) n++; }catch(x){} }
       save(); toast("Загружено"+(n?", фото: "+n:"")); render(); };
     rd.readAsText(f); };
@@ -2830,8 +2886,18 @@ function wordsToInt(tokens){ let total = 0, cur = 0, any = false;
 function parseSpoken(text, unit, rule){
   const s = String(text||"").toLowerCase().replace(/ё/g,"е").replace(/(\d)\s*[.,]\s*(\d)/g,"$1.$2").replace(/[^a-zа-я0-9. ]+/g," ").replace(/\s+/g," ").trim(); if(!s) return null;
   let n = null, dec = false, rest = s;
-  const dm = s.match(/(\d+(?:\.\d+)?)/);
-  if(dm){ n = parseFloat(dm[1]); dec = dm[1].includes("."); rest = s.slice(s.indexOf(dm[1])+dm[1].length); }
+  const tk = s.split(" "), toInt = w=>w.length===1 && /^\d+$/.test(w[0]) ? +w[0] : wordsToInt(w);
+  const mi = tk.findIndex(w=>/^метр/.test(w)), hi = tk.indexOf("половиной");
+  const right = mi>=0 ? tk.slice(mi+1).filter(w=>!/^(сантиметр|см$)/.test(w)) : [];
+  // «метр двадцать», «два метра двадцать (сантиметров)» — метры и сантиметры
+  if(mi>=0 && right.length && !tk.slice(0,mi).some(w=>/\./.test(w))){ const L = mi ? toInt(tk.slice(0,mi)) : 1, C = toInt(right);
+    if(L!=null && C!=null && C<100){ n = L + C/100; dec = true; rest = "метр"; } }
+  else if(mi===0 && tk.length===1){ n = 1; rest = "метр"; } // «метр»
+  // «семь с половиной (метров)»
+  else if(hi>1 && tk[hi-1]==="с"){ const L = toInt(tk.slice(0,hi-1)); if(L!=null){ n = L + 0.5; dec = true; rest = tk.slice(hi+1).join(" "); } }
+  const dm = n==null && s.match(/(\d+(?:\.\d+)?)/);
+  if(n!=null){}
+  else if(dm){ n = parseFloat(dm[1]); dec = dm[1].includes("."); rest = s.slice(s.indexOf(dm[1])+dm[1].length); }
   else{
     let t = s.split(" "); if(t.includes("полтора")||t.includes("полторы")){ n = 1.5; dec = true; rest = ""; }
     else{ let ui = t.findIndex(w=>/^(мм|миллиметр|см|сантиметр|метр|м$)/.test(w)); const num = ui<0 ? t : t.slice(0,ui); rest = ui<0 ? "" : t.slice(ui).join(" ");
@@ -2849,7 +2915,7 @@ function parseSpoken(text, unit, rule){
   if(n==null || !isFinite(n)) return null;
   const um = (rest+" ").match(/^\s*(мм|миллиметр\S*|см|сантиметр\S*|метр\S*|м)\s/);
   let u = um ? (/^(мм|миллим)/.test(um[1])?"mm":/^(см|сантим)/.test(um[1])?"cm":"m") : null, v = n, note = "";
-  if(unit==="м"){ if(u==="mm") v = n/1000; else if(u==="cm") v = n/100; else if(!u && !dec && n>=10){ v = n/100; note = "сантиметры"; } }
+  if(unit==="м"){ if(u==="mm") v = n/1000; else if(u==="cm") v = n/100; } // расстояния: число без единицы — это метры
   else if(unit==="мм"){
     if(u==="m") v = n*1000; else if(u==="cm") v = n*10; else if(u==="mm") v = n;
     else{ // единица не названа: выбираем толкование, ближайшее к норме параметра (мм, см или метры)
@@ -2903,7 +2969,7 @@ function renderTools(){
   h.oninput = upd; l.oninput = upd;
   const pn = byId("pn"), pm = byId("pm"), po = byId("pout");
   const pupd = ()=>{ const n = parseInt(pn.value,10); if(!(n>0)){ po.innerHTML=""; return; } const need = parkNeed(n), m = parseInt(pm.value,10);
-    po.innerHTML = `<div class="result ok">Нужно: ${need.all} мест для инвалидов, из них специализированных (6000 × 3600 мм) — ${need.spec}${isFinite(m)?`<small>${m>=need.spec?"Специализированных достаточно":"Не хватает специализированных: "+(need.spec-m)}</small>`:""}</div>`; };
+    po.innerHTML = `<div class="result ok">Нужно: ${need.all} мест для инвалидов, из них специализированных (6000 × 3600 мм) — ${need.spec}${isFinite(m)?`<small>${m>=need.all?"Мест для инвалидов достаточно. Проверьте, что специализированных (6000 × 3600 мм) среди них не меньше "+need.spec+".":"Не хватает мест для инвалидов: "+(need.all-m)+"."}</small>`:""}</div>`; };
   pn.oninput = pupd; pm.oninput = pupd;
   byId("tcal1").onclick = ()=>tiltCalStep(1); byId("tcal2").onclick = ()=>tiltCalStep(2);
   byId("talong").onclick = ()=>tiltToMeasure("along"); byId("tcross").onclick = ()=>tiltToMeasure("cross");

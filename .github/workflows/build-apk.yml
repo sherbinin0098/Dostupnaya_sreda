@@ -174,7 +174,7 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Сборка ${{ github.run_number }}
-          body: "APK: gorynych-dostupnost.apk. Нормы: СП 59.13330.2020, СП 140.13330.2024."
+          body: "APK: gorynych-dostupnost.apk. Нормы: СП 59.13330.2020, СП 140.13330.2024, СП 136.13330.2012, ГОСТ Р 51261-2025, ГОСТ 33652-2019."
           files: |
             gorynych-dostupnost.apk
             gorynych-dostupnost-google-play.aab
