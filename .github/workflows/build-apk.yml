@@ -10,6 +10,11 @@ on:
         type: choice
         default: "6"
         options: ["6", "8"]
+      voice:
+        description: "Плагин голоса: kotlin (по умолчанию) или java (прежний, запасной)"
+        type: choice
+        default: "kotlin"
+        options: ["kotlin", "java"]
 
 permissions:
   contents: write
@@ -75,13 +80,18 @@ jobs:
           printf "\nandroid {\n    kotlinOptions { jvmTarget = '%s' }\n}\n" "$JV" >> android/app/build.gradle
           grep -n "kotlin" android/build.gradle android/app/build.gradle
 
-      - name: Плагины телефона (голос — Java, уклономер — Kotlin)
+      - name: Плагины телефона (голос — Kotlin или запасной Java, уклономер — Kotlin)
         run: |
           MA=$(find android/app/src/main/java -name MainActivity.java | head -1)
           DIR=$(dirname "$MA")
           PKG=$(grep -m1 '^package ' "$MA" | sed -E 's/^package ([^;]+);.*/\1/')
           echo "package=$PKG dir=$DIR"
-          for f in MainActivity DictationPlugin; do sed "s/__PKG__/$PKG/" android-src/$f.java > "$DIR/$f.java"; done
+          sed "s/__PKG__/$PKG/" android-src/MainActivity.java > "$DIR/MainActivity.java"
+          if [ "${{ inputs.voice || 'kotlin' }}" = "java" ]; then
+            sed "s/__PKG__/$PKG/" android-src/DictationPlugin.java > "$DIR/DictationPlugin.java"
+          else
+            sed "s/__PKG__/$PKG/" android-src/DictationPlugin.kt > "$DIR/DictationPlugin.kt"
+          fi
           sed "s/__PKG__/$PKG/" android-src/TiltPlugin.kt > "$DIR/TiltPlugin.kt"
           grep -n "registerPlugin" "$DIR/MainActivity.java"
 
@@ -172,6 +182,9 @@ jobs:
           echo "ожидается: $EXPECTED"
           echo "в APK:     $ACTUAL"
           [ "$EXPECTED" = "$ACTUAL" ]
+
+      - name: Проверка целостности APK (подпись, версия, разрешения, плагины, веб-часть)
+        run: bash tools/verify-apk.sh gorynych-dostupnost.apk www/index.html 1.${{ github.run_number }}
 
       - uses: actions/upload-artifact@v4
         with:
