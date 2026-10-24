@@ -1757,7 +1757,7 @@ function groups(){ return [...new Set(RULES.map(r=>r.group))]; }
 
 function renderNav(){
   const nav = document.getElementById("nav");
-  nav.innerHTML = TABS.map(([k,t])=>`<button data-tab="${k}" ${(tab===k||(k==="more"&&MORE.includes(tab)))?'aria-current="true"':''}>${t}</button>`).join("");
+  nav.innerHTML = TABS.filter(([k])=>!(db.settings.simple&&k==="appeals")).map(([k,t])=>`<button data-tab="${k}" ${(tab===k||(k==="more"&&MORE.includes(tab)))?'aria-current="true"':''}>${t}</button>`).join("");
   nav.querySelectorAll("button").forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; render(); window.scrollTo(0,0); });
 }
 function render(){
@@ -1780,7 +1780,8 @@ function renderMeasure(){
   h += routeCardHTML(o);
   const rs = allRules().filter(r=>!draft.group||r.group===draft.group);
   const cur = draft.ruleId ? rule(draft.ruleId) : null;
-  h += `<div class="card"><label for="grp">Раздел</label>
+  const simple = !!db.settings.simple;
+  h += simple ? `<div class="card">${cur?`<h2 style="margin-top:0">${esc(cur.name)}</h2>`:`<p>Нажмите «Дальше» в маршруте — приложение покажет, что мерить.</p>`}` : `<div class="card"><label for="grp">Раздел</label>
     <select id="grp"><option value="">Все разделы</option>${gs.map(g=>`<option ${g===draft.group?"selected":""}>${esc(g)}</option>`).join("")}</select>
     <label for="rul">Параметр</label>
     <select id="rul"><option value="">— выберите параметр —</option>${rs.map(r=>`<option value="${r.id}" ${r.id===draft.ruleId?"selected":""}>${esc(r.name)} (${esc(r.unit)})</option>`).join("")}</select>`;
@@ -1790,14 +1791,15 @@ function renderMeasure(){
     <div class="inline"><input id="val" type="text" inputmode="decimal" autocomplete="off" placeholder="например ${esc(exampleVal(cur))}" value="${esc(draft.value)}">${speechAvailable()?`<button type="button" class="mic" id="mic" aria-label="Сказать число голосом">🎤</button>`:""}</div>
     <p class="heard muted" id="heard" aria-live="polite"></p>
     <div id="live"></div>
+    ${simple?`<label>Подтверждающие фото</label>${tilesHTML("draft")}<label for="exp">Как это на коляске (по желанию)</label><textarea id="exp" placeholder="Например: дверь тяжёлая, одному не открыть">${esc(draft.exp)}</textarea><details style="margin-top:8px"><summary>Дополнительно</summary>`:""}
     <label>Место замера</label><div id="dgeo"></div>
     <div class="row" style="margin-top:6px"><button id="dhere" class="small" type="button">📍 Я здесь</button><button id="dmap" class="small" type="button">На карте</button></div>
-    <label>Подтверждающие фото</label>${tilesHTML("draft")}
+    ${simple?"":`<label>Подтверждающие фото</label>${tilesHTML("draft")}`}
     <label class="chk"><input type="checkbox" id="stampChk" ${db.settings.stamp?"checked":""}> Подписывать на фото дату и место</label>
-    <label for="exp">Опыт эксперта: как это на коляске</label><textarea id="exp" placeholder="Например: дверь тяжёлая, одному не открыть">${esc(draft.exp)}</textarea>
+    ${simple?"":`<label for="exp">Опыт эксперта: как это на коляске</label><textarea id="exp" placeholder="Например: дверь тяжёлая, одному не открыть">${esc(draft.exp)}</textarea>`}
     <label for="fix">Что реально сделать</label><textarea id="fix" placeholder="Что может сделать объект или мэрия">${esc(draft.fix)}</textarea>
     <div class="chips" id="fixchips">${fixChips(cur.group)}</div>
-    <label for="cmt">Комментарий</label><textarea id="cmt">${esc(draft.comment)}</textarea>
+    <label for="cmt">Комментарий</label><textarea id="cmt">${esc(draft.comment)}</textarea>${simple?"</details>":""}
     <div style="margin-top:14px"><button id="saveM" class="primary" style="width:100%">Сохранить замер</button></div>`;
   }
   h += `</div>`;
@@ -1805,8 +1807,8 @@ function renderMeasure(){
   const nr = byId("newround"); if(nr) nr.onclick = ()=>startRound(o);
   const dg = byId("duego"); if(dg) dg.onclick = ()=>{ tab = "appeals"; render(); };
   const bg = byId("bkgo"); if(bg) bg.onclick = ()=>{ tab = "export"; render(); window.scrollTo(0,0); };
-  document.getElementById("grp").onchange = e=>{ draft.group = e.target.value; draft.ruleId=""; draft.value=""; draft.cond=null; renderMeasure(); };
-  document.getElementById("rul").onchange = e=>{ draft.ruleId = e.target.value; draft.value=""; draft.cond=null; renderMeasure(); };
+  if(!simple){ document.getElementById("grp").onchange = e=>{ draft.group = e.target.value; draft.ruleId=""; draft.value=""; draft.cond=null; renderMeasure(); };
+  document.getElementById("rul").onchange = e=>{ draft.ruleId = e.target.value; draft.value=""; draft.cond=null; renderMeasure(); }; }
   if(cur){
     const val = document.getElementById("val"), live = document.getElementById("live");
     const upd = ()=>{ draft.value = val.value; const v = num(val.value);
@@ -1838,7 +1840,9 @@ function renderMeasure(){
       db.records.unshift({ id:uid(), objId:o.id, round:rnd(o), ruleId:cur.id, value:v, result:k, ts:Date.now(), comment:draft.comment.trim(), exp:draft.exp.trim(), fix:draft.fix.trim(),
         geo:draft.geo, place:draft.place, slots, photos:Object.values(slots).filter(Boolean), cond:(k==='relax'?draft.cond:null) });
       save(); draft = newDraft(draft.group);
-      toast("Сохранено"); renderMeasure();
+      toast("Сохранено");
+      if(simple){ const nx = routeState(o).next; if(nx){ draft.group = nx.group; draft.ruleId = nx.id; focusVal = true; toast("Сохранено. Дальше: "+nx.name); } window.scrollTo(0,0); }
+      renderMeasure();
     };
   }
 }
@@ -2671,10 +2675,12 @@ function renderMore(){
   const ver = (byId("appver")||{}).textContent || "";
   app.innerHTML = `<div class="card"><h2 style="margin-top:0">Ещё</h2><div class="menu">
     <button type="button" data-go="export">Экспорт и отчёты</button><button type="button" data-go="stats">Сводка</button><button type="button" data-go="norms">Нормы (справка)</button></div></div>
+    <div class="card"><label class="chk"><input type="checkbox" id="asimple"> <b>Простой режим</b> — для обхода объекта: только то, что нужно для замера, и сразу следующий пункт маршрута</label>${db.settings.simple?`<button type="button" data-go="appeals" style="margin-top:8px">Обращения</button>`:""}</div>
     <div class="card"><label for="abig">Размер кнопок и текста</label><select id="abig"><option value="0">Обычный</option><option value="1">Крупный</option><option value="2">Очень крупный</option></select>
     <label class="chk"><input type="checkbox" id="acs"> Спрашивать подтверждение перед сохранением замера</label></div>
     <div class="card"><label for="aname">Ваше имя в отчётах</label><input id="aname" type="text" autocomplete="off" value="${esc(db.settings.author||"")}" placeholder="Например: Витя"><p class="muted">${esc(ver)}</p></div>`;
   app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ tab = b.dataset.go; render(); window.scrollTo(0,0); });
+  byId("asimple").checked = !!db.settings.simple; byId("asimple").onchange = e=>{ db.settings.simple = e.target.checked; if(e.target.checked && !db.settings.big){ db.settings.big = 1; } save(); render(); };
   byId("aname").oninput = e=>{ db.settings.author = e.target.value.trim(); save(); };
   byId("abig").value = String(db.settings.big||0); byId("abig").onchange = e=>{ db.settings.big = +e.target.value; save(); applyBig(); };
   byId("acs").checked = !!db.settings.confirmSave; byId("acs").onchange = e=>{ db.settings.confirmSave = e.target.checked; save(); };
@@ -2951,6 +2957,10 @@ async function syncNotifs(){
     db.settings.notifIds = ids; try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
   }catch(e){} finally{ notifBusy = false; } }
 
+const DRAFT_KEY = "gorynych_draft_v1";
+try{ const dj = JSON.parse(localStorage.getItem(DRAFT_KEY)||"null"); if(dj && typeof dj==="object" && dj.ruleId && RULES.some(r=>r.id===dj.ruleId)) draft = Object.assign(newDraft(""), dj); }catch(e){}
+let lastDraftJson = "";
+setInterval(()=>{ try{ const j = JSON.stringify(draft); if(j===lastDraftJson) return; lastDraftJson = j; if(draft.ruleId && (draft.value||draft.comment||draft.exp||draft.fix||Object.values(draft.slots||{}).some(Boolean))) localStorage.setItem(DRAFT_KEY, j); else localStorage.removeItem(DRAFT_KEY); }catch(e){} }, 1500);
 load();
 applyBig();
 openIDB().then(render);
