@@ -5,3 +5,5 @@ www/
 *.keystore
 *.jks
 *.pw
+dist/
+dist-test/

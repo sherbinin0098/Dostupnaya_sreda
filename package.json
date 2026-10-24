@@ -1,17 +1,35 @@
 {
   "name": "dostupnaya-sreda",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Горыныч: проверка доступности — Android-приложение (Capacitor)",
+  "type": "module",
+  "description": "Горыныч: проверка доступности — Android-приложение (Capacitor + TypeScript)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test",
+    "build:test": "VITE_EXPOSE=1 vite build --outDir dist-test",
+    "e2e": "npm run build:test && node tests/e2e/run.mjs",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.{ts,mjs}\""
+  },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
     "@capacitor/core": "^6.2.0",
     "@capacitor/filesystem": "^6.0.0",
+    "@capacitor/local-notifications": "^6.1.0",
     "@capacitor/share": "^6.0.0",
-    "leaflet": "1.9.4",
-    "@capacitor/local-notifications": "^6.1.0"
+    "leaflet": "1.9.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.2.0"
+    "@capacitor/cli": "^6.2.0",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-singlefile": "^2.0.3",
+    "vitest": "^2.1.8",
+    "playwright": "1.56.1"
   }
 }

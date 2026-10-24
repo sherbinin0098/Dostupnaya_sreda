@@ -53,7 +53,7 @@ Android-приложение проекта «Мастерская Горыны�
 - `gorynych-dostupnost.apk` — для установки из файла;
 - `gorynych-dostupnost-google-play.aab` — для загрузки в Google Play (когда понадобится).
 
-Нормы лежат в `index.html` в массиве `RULES`; дата справки в `NORMS_VERSION`.
+Нормы лежат в `src/data/rules.json`; дата справки в `NORMS_VERSION` (`src/core/rules.ts`). Устройство кода, команды и проверки — в [DEVELOPING.md](DEVELOPING.md).
 
 Иконка: исходник `icon.png`, готовые картинки для Android лежат в `android-res/`. Если меняете иконку — замените `icon.png` и выполните `bash tools/make-icons.sh` (нужен ImageMagick).
 
