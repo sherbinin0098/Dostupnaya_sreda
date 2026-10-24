@@ -121,6 +121,7 @@ html.big2 body,html.big2{font-size:23px}html.big2 button,html.big2 select,html.b
 .vmchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
 .vmbar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);max-width:none!important;margin:0!important}
 .vmbar>*{flex:1 1 0;min-height:60px}
+.vsmain{text-align:center}.vsstat{font-size:20px;font-weight:700;color:var(--brand);margin-bottom:6px}.vsphr{font-size:40px;font-weight:800;line-height:1.15;margin:6px 0 10px;word-break:break-word}
 </style>
 </head>
 <body>
@@ -2685,7 +2686,7 @@ function routeCardHTML(o){
     <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
     <p class="muted" style="margin:4px 0 8px">Проверено ${st.fin} из ${st.total}${rnd(o)>1?" · обследование №"+rnd(o):""}</p>
     ${st.next?`<button type="button" class="primary" id="rnext" style="width:100%">Дальше: ${esc(st.next.name)}</button>`:`<div class="result ok" style="margin:0">Маршрут пройден</div>`}
-    ${speechAvailable()?`<button type="button" id="vsopen" class="primary" style="width:100%;margin-top:8px">🎤 По порядку: говорю только число</button><button type="button" id="vmopen" style="width:100%;margin-top:8px">Диктовать списком (с подсказками)</button>`:""}
+    ${speechAvailable()?`<button type="button" id="vsopen" class="primary" style="width:100%;margin-top:8px">🎤 Диктовка: телефон лежит, говорю числа</button><button type="button" id="vmopen" style="width:100%;margin-top:8px">Диктовать списком (с подсказками)</button>`:""}
     <details id="rdet" ${routeOpen?"open":""} style="margin-top:8px"><summary>Весь маршрут и пропуск пунктов</summary>${list}</details></div>`; }
 function bindRoute(o){
   const pick = id=>{ const r = rule(id); draft.group = r.group; draft.ruleId = r.id; draft.value = ""; draft.cond = null; focusVal = true; renderMeasure(); };
@@ -3366,61 +3367,86 @@ function vmSave(){
   vm.rows.filter(x=>x.on).forEach(x=>{ const v = num(x.value); if(v==null) return; vsRecord(o, x.id, v, x.heard); n++; });
   if(!n) return; toast("Сохранено замеров: "+n); vmClose(); render(); }
 
-/* ==== ГОЛОС ПО ПОРЯДКУ: приложение называет пункт, говорящий называет только число ==== */
-let vs = null;
-function vsClose(){ if(vs) vs.stop = true; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} const e = byId("vsx"); if(e) e.remove(); vs = null; document.body.style.overflow = ""; render(); }
-function vsSpeak(t){ try{ if(!(db.settings.vsSpeak!==false) || !window.speechSynthesis) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = "ru-RU"; u.rate = 0.95; speechSynthesis.speak(u); }catch(e){} }
+/* ==== ДИКТОВКА: телефон лежит, приложение называет кодовую фразу, говорящий называет число ==== */
+let vs = null, vsWake = null;
+function vsClose(){ if(vs) vs.stop = true; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} try{ vsWake && vsWake.release(); }catch(e){} vsWake = null; const e = byId("vsx"); if(e) e.remove(); vs = null; document.body.style.overflow = ""; render(); }
+function vsTTS(text, done){ // читает вслух и вызывает done, когда договорил (или сразу, если озвучка выключена или недоступна)
+  let fired = false; const fin = ()=>{ if(fired) return; fired = true; if(done) done(); };
+  try{ if(db.settings.vsSpeak===false || !window.speechSynthesis){ setTimeout(fin, 500); return; }
+    speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ru-RU"; u.rate = 1; u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); setTimeout(fin, 7000); }catch(e){ setTimeout(fin, 500); } }
 function vsNext(o){ const st = routeState(o); for(const g of st.gs) for(const i of g.items){ if(!i.done && !i.skip && !vs.later.has(i.r.id)) return i.r; }
   for(const g of st.gs) for(const i of g.items){ if(!i.done && !i.skip) return i.r; } return null; }
 function vsOpen(){
   const o = curObj(); if(!o){ toast("Сначала выберите объект"); return; }
-  vs = {cur:null, later:new Set(), last:[], say:"", ok:null, pend:null, busy:false, stop:false}; vs.cur = vsNext(o);
-  document.body.style.overflow = "hidden"; vsRender(true); }
+  vs = {cur:null, later:new Set(), last:[], say:"", ok:"", pend:null, busy:false, paused:false, stop:false, fail:0, tok:0}; vs.cur = vsNext(o);
+  document.body.style.overflow = "hidden"; try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(w=>{ vsWake = w; }).catch(()=>{}); }catch(e){}
+  vsRender(); vsAnnounce(""); }
 function vsRecord(o, id, v, heard){ const r = rule(id), k = check(r, v, o), rec = { id:uid(), objId:o.id, round:rnd(o), ruleId:r.id, value:v, result:k, ts:Date.now(), comment:"Голосовой ввод: «"+heard+"»", exp:"", fix:"", geo:null, place:"", slots:{}, photos:[], cond:null };
   db.records.unshift(rec); save(); return rec; }
-function vsAdvance(o){ vs.cur = vsNext(o); vs.pend = null; vsRender(true); }
-function vsTake(o, items){ // сохраняет понятые значения и показывает следующий пункт
+// назвать следующий пункт вслух и сразу слушать ответ
+function vsAnnounce(prefix){
+  if(!vs) return; const tok = ++vs.tok, r = vs.cur;
+  const go = ()=>{ if(vs && vs.tok===tok && !vs.paused && !vs.busy && !vs.stop && vs.cur) vsListen(); };
+  if(vs.pend){ const pr = rule(vs.pend.id); vsTTS("Похоже на опечатку: "+fmt(vs.pend.value)+". Скажите «да» или назовите число ещё раз.", go); return; }
+  if(!r){ vsTTS("Маршрут пройден.", ()=>{}); return; }
+  vsTTS((prefix?prefix+" ":"")+VK[r.id], go); }
+function vsStep(o, say, ok, prefix){ vs.say = say; vs.ok = ok||""; vs.pend = null; vs.fail = 0; vs.cur = vsNext(o); vsRender(); vsAnnounce(prefix||""); }
+function vsTake(o, items){
   const recs = items.map(it=>vsRecord(o, it.id, it.value, it.heard)); vs.last = recs.map(r=>r.id);
   const sum = items.map(it=>{ const r = rule(it.id), k = check(r, it.value, o); return `${r.name}: ${fmt(it.value)} ${r.unit} — ${RES[k][0]}`+(it.note?" (принято как "+it.note+")":""); });
-  vs.say = "Записано. "+sum.join("; "); const k0 = check(rule(items[0].id), items[0].value, o); vs.ok = RES[k0][1];
-  vsAdvance(o); }
-function vsRender(speak){
-  const o = curObj(); if(!vs || !o) return; const st = routeState(o), r = vs.cur ? rule(vs.cur.id) : null, mic = speechAvailable();
-  let e = byId("vsx"); if(!e){ e = document.createElement("div"); e.id = "vsx"; e.className = "vmx"; e.setAttribute("role","dialog"); e.setAttribute("aria-label","Голос по порядку"); document.body.appendChild(e); }
-  const pct = st.total ? Math.round(st.fin/st.total*100) : 0, pend = vs.pend, pr = pend ? rule(pend.id) : null;
-  e.innerHTML = `<div class="vmhead"><b>Голос по порядку</b><button type="button" class="small" id="vsclose">Закрыть</button></div>
+  const k0 = check(rule(items[0].id), items[0].value, o);
+  vsStep(o, "Записано. "+sum.join("; "), RES[k0][1], fmt(items[items.length-1].value)+"."); }
+function vsRender(){
+  const o = curObj(); if(!vs || !o) return; const st = routeState(o), r = vs.cur ? rule(vs.cur.id) : null, pend = vs.pend, pr = pend ? rule(pend.id) : null;
+  let e = byId("vsx"); if(!e){ e = document.createElement("div"); e.id = "vsx"; e.className = "vmx"; e.setAttribute("role","dialog"); e.setAttribute("aria-label","Диктовка"); document.body.appendChild(e); }
+  const pct = st.total ? Math.round(st.fin/st.total*100) : 0, status = vs.busy ? "🎤 Слушаю…" : vs.paused ? "⏸ Пауза" : r ? "Говорите число" : "";
+  e.innerHTML = `<div class="vmhead"><b>Диктовка</b><button type="button" class="small" id="vsclose">Закрыть</button></div>
     <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><p class="muted" style="margin:4px 0 10px">Проверено ${st.fin} из ${st.total}</p>
-    ${vs.say?`<div class="card ${vs.ok||""}" aria-live="polite">${esc(vs.say)}</div>`:""}
-    ${pend?`<div class="card warn" role="alert"><b>Проверьте число.</b> «${esc(pend.heard)}» → ${fmt(pend.value)} ${esc(pr.unit)} для пункта «${esc(pr.name)}» выглядит необычно (норма: ${esc(normText(pr))}).<div class="row" style="margin-top:8px"><button type="button" class="primary" id="vsyes">Да, записать</button><button type="button" id="vsno">Сказать ещё раз</button></div></div>`:""}
-    ${r?`<div class="card"><div class="muted">${esc(r.group)}</div><div class="vph" style="font-size:26px">${esc(r.name)}</div><div style="margin:6px 0">Норма: ${esc(normText(r))}</div><div class="muted">Скажите число${r.unit==="мм"?" в миллиметрах или с единицей, например «девяносто пять сантиметров»":r.unit==="м"?" в метрах":" ("+esc(r.unit)+")"}. Можно сразу продиктовать другой пункт фразой: «${esc(VK[r.id])}» и число.</div></div>`
+    ${r?`<div class="card vsmain"><div class="vsstat" aria-live="polite">${status}</div><div class="vsphr">«${esc(VK[r.id])}»</div><div style="font-size:19px;font-weight:700">${esc(r.name)}</div><div class="muted">Норма: ${esc(normText(r))}. Число можно говорить без единицы.</div></div>`
       :`<div class="card ok"><b>Маршрут пройден.</b> Все пункты этого объекта записаны или пропущены.</div>`}
-    ${r?`<div class="row"><button type="button" class="small" id="vsskip">Пропустить пока</button><button type="button" class="small" id="vsnone">Нет такого на объекте</button></div>`:""}
-    ${vs.last.length?`<button type="button" class="small" id="vsundo" style="margin-top:8px;width:100%">Отменить последнее (${vs.last.length})</button>`:""}
-    <label class="chk" style="margin-top:12px"><input type="checkbox" id="vsspk" ${db.settings.vsSpeak!==false?"checked":""}> Читать следующий пункт вслух</label>
-    <label class="chk"><input type="checkbox" id="vsauto" ${vs.auto?"checked":""}> Сразу слушать следующий (без нажатия)</label>
-    <div class="vmbar">${mic?`<button type="button" class="primary" id="vsmic" ${vs.busy||!r?"disabled":""}>${vs.busy?"Слушаю…":"🎤 Сказать число"}</button>`:`<div class="warn">Голосовой ввод недоступен на этом телефоне.</div>`}</div>`;
+    ${pend?`<div class="card warn" role="alert"><b>Проверьте число.</b> ${fmt(pend.value)} ${esc(pr.unit)} для этого пункта выглядит необычно. Скажите «да», чтобы записать, или назовите число ещё раз.<div class="row" style="margin-top:8px"><button type="button" class="primary" id="vsyes">Да, записать</button><button type="button" id="vsno">Нет, ещё раз</button></div></div>`:""}
+    ${vs.say?`<div class="card ${vs.ok||""}" aria-live="polite">${esc(vs.say)}</div>`:""}
+    ${r?`<div class="row"><button type="button" class="small" id="vsskip">Пропустить пока</button><button type="button" class="small" id="vsnone">Нет такого</button>${vs.last.length?`<button type="button" class="small" id="vsundo">Отменить последнее</button>`:""}</div>`:""}
+    <div class="muted" style="margin:12px 0 4px">Можно сказать вместо числа: «отмена», «пропустить», «нет такого», «повтори», «пауза».</div>
+    <label class="chk"><input type="checkbox" id="vsspk" ${db.settings.vsSpeak!==false?"checked":""}> Озвучивать фразы и повторять число вслух</label>
+    <div class="vmbar">${speechAvailable()?`<button type="button" class="primary" id="vspause">${vs.paused?"▶ Продолжить":"⏸ Пауза"}</button>`:`<div class="warn">Голосовой ввод недоступен на этом телефоне.</div>`}</div>`;
   byId("vsclose").onclick = vsClose;
-  const mb = byId("vsmic"); if(mb) mb.onclick = ()=>vsListen();
-  const sk = byId("vsskip"); if(sk) sk.onclick = ()=>{ vs.later.add(vs.cur.id); vs.say = "Пропущено на потом: "+rule(vs.cur.id).name; vs.ok = ""; vsAdvance(o); };
-  const nn = byId("vsnone"); if(nn) nn.onclick = ()=>{ o.skip = o.skip||{}; o.skip[skipKey(o,vs.cur.id)] = true; save(); vs.say = "Отмечено «нет такого»: "+rule(vs.cur.id).name; vs.ok = ""; vsAdvance(o); };
-  const un = byId("vsundo"); if(un) un.onclick = ()=>{ const ids = new Set(vs.last), first = db.records.find(x=>ids.has(x.id)); db.records = db.records.filter(x=>!ids.has(x.id)); save(); vs.last = []; vs.cur = first ? rule(first.ruleId) : vsNext(o); vs.say = "Последнее записанное отменено."; vs.ok = ""; vs.later.delete(vs.cur&&vs.cur.id); vsRender(true); };
-  const yes = byId("vsyes"); if(yes) yes.onclick = ()=>{ const p = vs.pend; vsTake(o, [p]); };
-  const no = byId("vsno"); if(no) no.onclick = ()=>{ vs.pend = null; vs.say = "Скажите число ещё раз."; vs.ok = ""; vsRender(false); };
-  byId("vsspk").onchange = ev=>{ db.settings.vsSpeak = ev.target.checked; save(); };
-  byId("vsauto").onchange = ev=>{ vs.auto = ev.target.checked; };
-  if(speak && r && !vs.pend){ vsSpeak((vs.say&&vs.ok!==""&&vs.last.length?"Записано. ":"")+"Дальше: "+r.name); if(vs.auto) setTimeout(()=>{ if(vs && !vs.stop && !vs.busy && !vs.pend && vs.cur) vsListen(); }, 2200); } }
+  const pb = byId("vspause"); if(pb) pb.onclick = ()=>{ if(vs.paused){ vs.paused = false; vs.fail = 0; vs.say = ""; vsRender(); vsAnnounce("Продолжаем."); } else { vs.paused = true; vs.tok++; try{ speechSynthesis.cancel(); }catch(e){} vsRender(); } };
+  const sk = byId("vsskip"); if(sk) sk.onclick = ()=>vsSkip(o);
+  const nn = byId("vsnone"); if(nn) nn.onclick = ()=>vsNone(o);
+  const un = byId("vsundo"); if(un) un.onclick = ()=>vsUndo(o);
+  const yes = byId("vsyes"); if(yes) yes.onclick = ()=>vsTake(o, [vs.pend]);
+  const no = byId("vsno"); if(no) no.onclick = ()=>{ vs.pend = null; vs.say = "Скажите число ещё раз."; vs.ok = ""; vsRender(); vsAnnounce(""); };
+  byId("vsspk").onchange = ev=>{ db.settings.vsSpeak = ev.target.checked; save(); }; }
+function vsSkip(o){ vs.later.add(vs.cur.id); const n = rule(vs.cur.id).name; vsStep(o, "Пропущено на потом: "+n, "", ""); }
+function vsNone(o){ o.skip = o.skip||{}; o.skip[skipKey(o,vs.cur.id)] = true; save(); vsStep(o, "Отмечено «нет такого»: "+rule(vs.cur.id).name, "", ""); }
+function vsUndo(o){ const ids = new Set(vs.last), first = db.records.find(x=>ids.has(x.id)); db.records = db.records.filter(x=>!ids.has(x.id)); save(); vs.last = [];
+  const c = first ? rule(first.ruleId) : null; if(c) vs.later.delete(c.id); vs.cur = c || vsNext(o); vs.say = "Последнее записанное отменено."; vs.ok = ""; vs.pend = null; vsRender(); vsAnnounce("Отмена."); }
+const VCMD = [["undo",/^(отмена|отменить|назад|ошибся|ошибка|не так)$/],["skip",/^(пропустить|пропусти|потом|позже)$/],["none",/^(нет такого|нету|нет такой|нет такое|отсутствует)$/],["again",/^(повтори|повторить|еще раз|снова)$/],["pause",/^(пауза|стоп|подожди|хватит)$/],["yes",/^(да|верно|записать|пиши|правильно)$/],["no",/^(нет|неверно|неправильно)$/]];
+function vsCmd(t){ const w = vNorm(t); for(const [k,re] of VCMD) if(re.test(w)) return k; return null; }
 async function vsListen(){
-  const o = curObj(); if(!vs || vs.busy || !o || !vs.cur) return; vs.busy = true; vs.say = "Слушаю…"; vs.ok = ""; try{ speechSynthesis.cancel(); }catch(e){} vsRender(false);
-  let list = []; try{ list = await listenOnce(); }catch(e){ const m = String((e&&e.message)||e); vs.say = /not.*implemented|unavailable|no_recognizer|UNIMPLEMENTED/i.test(m) ? "Голосовой ввод недоступен на этом телефоне." : "Не получилось записать голос."; vs.busy = false; vs.auto = false; vsRender(false); return; }
-  if(!vs) return; vs.busy = false; const r = rule(vs.cur.id);
-  if(!list.length){ vs.say = "Ничего не услышал. Нажмите ещё раз."; vs.auto = false; vsRender(false); return; }
-  // 1) фраза с названием пункта + число (любой пункт); 2) просто число для текущего пункта
+  const o = curObj(); if(!vs || vs.busy || vs.paused || !o || !vs.cur) return; vs.busy = true; vs.ok = vs.pend ? vs.ok : vs.ok; vsRender();
+  let list = []; try{ list = await listenOnce(); }catch(e){ if(!vs) return; const m = String((e&&e.message)||e); vs.busy = false; vs.paused = true; vs.say = /not.*implemented|unavailable|no_recognizer|UNIMPLEMENTED/i.test(m) ? "Голосовой ввод недоступен на этом телефоне." : "Не получилось записать голос. Нажмите «Продолжить»."; vs.ok = ""; vsRender(); return; }
+  if(!vs) return; vs.busy = false;
+  if(vs.paused || vs.stop) { vsRender(); return; }
+  const retry = msg=>{ vs.fail++; if(vs.fail>=3){ vs.paused = true; vs.say = "Ничего не слышно. Нажмите «Продолжить», когда будете готовы."; vs.ok = ""; vsRender(); vsTTS("Пауза.", ()=>{}); return; } vs.say = msg; vs.ok = ""; vsRender(); vsTTS(vs.fail===1?"Повторите.":"Не расслышал. Повторите число.", ()=>{ if(vs && !vs.paused && !vs.busy) vsListen(); }); };
+  if(!list.length){ retry("Ничего не услышал."); return; }
+  const cmd = list.map(vsCmd).find(Boolean);
+  if(cmd){ vs.fail = 0;
+    if(cmd==="undo"){ if(vs.last.length) vsUndo(o); else { vs.say = "Отменять нечего."; vsRender(); vsAnnounce(""); } return; }
+    if(cmd==="skip"){ vsSkip(o); return; }
+    if(cmd==="none"){ vsNone(o); return; }
+    if(cmd==="again"){ vs.say = ""; vsRender(); vsAnnounce(""); return; }
+    if(cmd==="pause"){ vs.paused = true; vs.say = "Пауза."; vs.ok = ""; vsRender(); return; }
+    if(cmd==="yes" && vs.pend){ vsTake(o, [vs.pend]); return; }
+    if(cmd==="no" && vs.pend){ vs.pend = null; vs.say = "Скажите число ещё раз."; vs.ok = ""; vsRender(); vsAnnounce(""); return; } }
+  const r = rule(vs.cur.id);
   let multi = null; for(const t of list){ const p = parseMulti(t); if(p.items.length && (!multi || p.items.length>multi.items.length)) multi = p; }
   if(multi){ const bad = multi.items.filter(it=>!plausible(rule(it.id), it.value));
-    if(!bad.length){ vsTake(o, multi.items); return; } vs.pend = {id:bad[0].id, value:bad[0].value, heard:bad[0].heard}; vs.say = ""; vsRender(false); return; }
+    if(!bad.length){ vsTake(o, multi.items); return; } vs.pend = {id:bad[0].id, value:bad[0].value, heard:bad[0].heard, note:bad[0].note}; vs.fail = 0; vs.say = ""; vsRender(); vsAnnounce(""); return; }
   for(const t of list){ const w = vNorm(t).split(" ").filter(x=>!VFILL.has(x)).join(" "), p = w ? parseSpoken(w, r.unit, r) : null;
-    if(p){ const it = {id:r.id, value:p.value, note:p.note, heard:t}; if(plausible(r, p.value)) vsTake(o, [it]); else { vs.pend = it; vs.say = ""; vsRender(false); } return; } }
-  vs.say = "Не понял число. Услышал: «"+list[0]+"». Скажите ещё раз только число."; vs.auto = false; vsRender(false); }
+    if(p){ const it = {id:r.id, value:p.value, note:p.note, heard:t}; if(plausible(r, p.value)) vsTake(o, [it]); else { vs.pend = it; vs.fail = 0; vs.say = ""; vsRender(); vsAnnounce(""); } return; } }
+  retry("Не понял число. Услышал: «"+list[0]+"»."); }
 
 const DRAFT_KEY = "gorynych_draft_v1";
 try{ const dj = JSON.parse(localStorage.getItem(DRAFT_KEY)||"null"); if(dj && typeof dj==="object" && dj.ruleId && RULES.some(r=>r.id===dj.ruleId)) draft = Object.assign(newDraft(""), dj); }catch(e){}
