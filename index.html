@@ -3123,7 +3123,14 @@ function parseSpoken(text, unit, rule){
   v = Math.round(v*10000)/10000; return {value:v, note, heard:text}; }
 function speechAvailable(){ return isNative || !!(window.SpeechRecognition||window.webkitSpeechRecognition); }
 function listenOnce(){ return new Promise((res,rej)=>{
-  if(isNative){ nCall("Dictation","listen",{lang:"ru-RU"}).then(r=>res((r&&r.matches)||[]), e=>rej(e)); return; }
+  if(isNative){
+    const dialog = ()=>nCall("Dictation","listen",{lang:"ru-RU"}).then(r=>res((r&&r.matches)||[]), e=>rej(e));
+    // сначала тихое распознавание без окна (нужен микрофон); если нельзя — системное окно
+    if(listenOnce.quietOff) return dialog();
+    nCall("Dictation","listenQuiet",{lang:"ru-RU"}).then(r=>res((r&&r.matches)||[]), e=>{
+      const m = String((e&&e.message)||e);
+      if(/no_permission|unavailable|not.*implemented|UNIMPLEMENTED/i.test(m) || /^error_(5|9|10|11|12|13)/.test(m)){ listenOnce.quietOff = true; dialog(); } else if(/busy|^error_(3|8)$/.test(m)){ res([]); } else rej(e); });
+    return; }
   const SR = window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return rej(new Error("no"));
   const r = new SR(); r.lang = "ru-RU"; r.maxAlternatives = 5; r.onresult = e=>res([...e.results[0]].map(x=>x.transcript)); r.onerror = e=>rej(new Error(e.error)); r.onend = ()=>res([]); r.start(); }); }
 async function dictate(unit, input, say, rule){
