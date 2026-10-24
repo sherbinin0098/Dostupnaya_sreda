@@ -26,8 +26,9 @@ export function exampleVal(r: Rule) {
   const v = lo != null && hi != null ? (lo + hi) / 2 : lo != null ? lo : hi;
   return v == null ? "" : String(Math.round(v * 100) / 100).replace(".", ",");
 }
+const RULE_BY_ID = new Map<string, Rule>(RULES.map(r => [r.id, r]));
 export function rule(id: string): Rule | null {
-  const r = RULES.find(x => x.id === id);
+  const r = RULE_BY_ID.get(id);
   if (!r) return null;
   const o = db.overrides[id];
   return o ? Object.assign({}, r, o) : r;

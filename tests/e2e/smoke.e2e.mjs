@@ -120,4 +120,44 @@ export const tests = {
       await close();
     }
   },
+
+  async "журнал показывает замеры порциями и считает итоги по всем"() {
+    const { page, errors, close } = await openApp();
+    try {
+      await newObject(page);
+      await page.evaluate(() => {
+        const o = curObj();
+        for (let i = 0; i < 100; i++)
+          db.records.push({
+            id: "r" + i,
+            objId: o.id,
+            round: 1,
+            ruleId: "R01",
+            value: 950,
+            result: "ok",
+            ts: 1792700000000 + i,
+            comment: "",
+            slots: {},
+            photos: [],
+          });
+        save();
+      });
+      await tab(page, "log");
+      assert.equal(await page.locator("#app .item").count(), 30);
+      assert.match(
+        await page.textContent("#app"),
+        /соотв\.: 100/,
+        "итоги считаются по всем замерам, а не по показанным"
+      );
+      await page.click("#logmore");
+      assert.equal(await page.locator("#app .item").count(), 60);
+      await page.click("#logmore");
+      await page.click("#logmore");
+      assert.equal(await page.locator("#app .item").count(), 100);
+      assert.equal(await page.locator("#logmore").count(), 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await close();
+    }
+  },
 };

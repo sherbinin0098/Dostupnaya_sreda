@@ -3,10 +3,20 @@ import { rule } from "./core/rules";
 import { curObj } from "./core/storage";
 import { byId, fmt } from "./core/util";
 import { ui } from "./core/state";
+import { isNative, nCall } from "./native";
 import { render, toast } from "./ui/common";
 
 export const TILT_KEY = "gorynych_tilt_v1";
-export let tilt = { on: false, buf: [], got: false, cal: { a: 0, c: 0 }, c1: null, h: null };
+export let tilt = {
+  on: false,
+  buf: [],
+  got: false,
+  cal: { a: 0, c: 0 },
+  c1: null,
+  h: null,
+  poll: null,
+  native: false,
+};
 export function tiltLoad() {
   try {
     const j = JSON.parse(localStorage.getItem(TILT_KEY) || "null");
@@ -42,12 +52,42 @@ export function tiltOnMotion(e) {
   tilt.buf.push(tiltAngles(g));
   if (tilt.buf.length > 30) tilt.buf.shift();
 }
+// в приложении на телефоне вектор силы тяжести берём из датчика через плагин Tilt (на Kotlin): он точнее браузерного devicemotion
+function tiltPollNative() {
+  nCall("Tilt", "read")
+    .then(r => {
+      if (!tilt.on || !r || !(r.n > 0)) return;
+      tilt.got = true;
+      tilt.buf.push(tiltAngles({ x: r.x, y: r.y, z: r.z }));
+      if (tilt.buf.length > 30) tilt.buf.shift();
+    })
+    .catch(() => {});
+}
+function tiltUseBrowser() {
+  tilt.native = false;
+  window.addEventListener("devicemotion", tiltOnMotion);
+}
 export function tiltStart() {
   if (tilt.on) return;
   tilt.on = true;
   tilt.buf = [];
   tilt.got = false;
-  window.addEventListener("devicemotion", tiltOnMotion);
+  tilt.native = false;
+  if (isNative) {
+    nCall("Tilt", "start").then(
+      () => {
+        if (!tilt.on) {
+          nCall("Tilt", "stop").catch(() => {});
+          return;
+        }
+        tilt.native = true;
+        tilt.poll = setInterval(tiltPollNative, 100);
+      },
+      () => {
+        if (tilt.on) tiltUseBrowser(); // датчика в плагине нет — как раньше
+      }
+    );
+  } else tiltUseBrowser();
   tilt.h = setInterval(tiltDraw, 250);
   setTimeout(() => {
     if (tilt.on && !tilt.got) {
@@ -62,6 +102,9 @@ export function tiltStop() {
   tilt.on = false;
   window.removeEventListener("devicemotion", tiltOnMotion);
   clearInterval(tilt.h);
+  clearInterval(tilt.poll);
+  if (tilt.native) nCall("Tilt", "stop").catch(() => {});
+  tilt.native = false;
 }
 export function tiltDraw() {
   const el = byId("tiltval"),

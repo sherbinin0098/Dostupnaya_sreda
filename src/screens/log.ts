@@ -25,6 +25,10 @@ export function recView(r: Rec) {
   const baseK = known && ob ? check(ru, r.value, ob) : r.result;
   return { ru, ob, baseK, k: effKind(baseK, r.cond) };
 }
+// Журнал показываем порциями: 600 замеров разом — это ~17 000 элементов и секунды ожидания на телефоне
+const LOG_PAGE = 30;
+let logShown = LOG_PAGE;
+
 export function renderLog() {
   const list = db.records.filter(r => ui.logFilter === "all" || r.objId === ui.logFilter);
   const cnt = { ok: 0, bad: 0, relax: 0, relaxok: 0, old: 0, nonorm: 0 };
@@ -45,6 +49,7 @@ export function renderLog() {
     h +=
       `<div class="card">` +
       items
+        .slice(0, logShown)
         .map(
           ({ r, v }) => `<div class="item" data-id="${r.id}">
     <div><b>${esc(v.ru.name)}</b></div>
@@ -60,10 +65,20 @@ export function renderLog() {
     <div class="row" style="margin-top:6px"><button class="small" data-edit="${r.id}">Изменить</button><button class="small danger" data-del="${r.id}">Удалить</button></div></div>`
         )
         .join("") +
+      (items.length > logShown
+        ? `<button id="logmore" style="width:100%;margin-top:10px">Показать ещё (осталось ${items.length - logShown})</button>`
+        : "") +
       `</div>`;
   app.innerHTML = h;
+  const more = byId("logmore");
+  if (more)
+    more.onclick = () => {
+      logShown += LOG_PAGE;
+      renderLog();
+    };
   document.getElementById("lf").onchange = e => {
     ui.logFilter = e.target.value;
+    logShown = LOG_PAGE;
     renderLog();
   };
   app.querySelectorAll("[data-cond]").forEach(

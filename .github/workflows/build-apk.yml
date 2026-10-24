@@ -58,18 +58,31 @@ jobs:
         run: |
           mkdir -p www/leaflet
           cp -r node_modules/leaflet/dist/. www/leaflet/
+          # в приложение нужны только leaflet.js, leaflet.css и картинки; исходники и карты кода (≈3 МБ) не кладём
+          rm -f www/leaflet/*.map www/leaflet/leaflet-src.js www/leaflet/leaflet-src.esm.js
           ls www/leaflet
 
       - name: Создание Android-проекта
         run: npx cap add android
 
-      - name: Голосовой ввод (плагин Dictation)
+      # Kotlin: подключаем к проекту, чтобы писать на нём то, что должно работать на уровне телефона (датчики)
+      - name: Kotlin в Android-проекте
+        run: |
+          KV=${{ inputs.capacitor == '8' && '2.1.21' || '1.9.25' }}
+          JV=${{ inputs.capacitor == '8' && '21' || '17' }}
+          sed -i "0,/classpath 'com.android.tools.build:gradle:/s##classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KV\"\n        classpath 'com.android.tools.build:gradle:#" android/build.gradle
+          sed -i "1a apply plugin: 'kotlin-android'" android/app/build.gradle
+          printf "\nandroid {\n    kotlinOptions { jvmTarget = '%s' }\n}\n" "$JV" >> android/app/build.gradle
+          grep -n "kotlin" android/build.gradle android/app/build.gradle
+
+      - name: Плагины телефона (голос — Java, уклономер — Kotlin)
         run: |
           MA=$(find android/app/src/main/java -name MainActivity.java | head -1)
           DIR=$(dirname "$MA")
           PKG=$(grep -m1 '^package ' "$MA" | sed -E 's/^package ([^;]+);.*/\1/')
           echo "package=$PKG dir=$DIR"
           for f in MainActivity DictationPlugin; do sed "s/__PKG__/$PKG/" android-src/$f.java > "$DIR/$f.java"; done
+          sed "s/__PKG__/$PKG/" android-src/TiltPlugin.kt > "$DIR/TiltPlugin.kt"
           grep -n "registerPlugin" "$DIR/MainActivity.java"
 
       - name: Разрешения (камера, геолокация) и номер версии

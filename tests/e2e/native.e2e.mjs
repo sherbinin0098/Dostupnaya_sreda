@@ -77,3 +77,43 @@ export const tests = {
     }
   },
 };
+
+// Уклономер через Kotlin-плагин Tilt: сила тяжести (x, y, z) приходит из датчика, страница считает уклон и показывает направление.
+const GRAV = {
+  "Tilt.start": { data: { source: "gravity" } },
+  "Tilt.read": { data: { n: 5, x: 0.2, y: 0.8, z: 9.78 } },
+}; // ≈ 82‰ вдоль и 20‰ поперёк
+
+const tests2 = {
+  async "уклономер берёт данные у плагина Tilt"() {
+    const { page, errors, close } = await openApp({ native: GRAV });
+    try {
+      await page.click('nav button[data-tab="tools"]');
+      await page.waitForFunction(() => document.querySelector("#tiltval b"), null, { timeout: 5000 });
+      await page.waitForTimeout(800);
+      const text = await page.locator("#tiltval").innerText();
+      assert.match(text, /8[0-4]‰/, "продольный уклон ≈ 82‰: " + text);
+      assert.match(text, /подъём/);
+      const calls = await page.evaluate(() => window.__calls.filter(c => c.startsWith("Tilt")));
+      assert.ok(calls.includes("Tilt.start") && calls.includes("Tilt.read"), calls.join());
+      assert.deepEqual(errors, []);
+    } finally {
+      await close();
+    }
+  },
+  async "нет датчика в плагине — уклономер продолжает работать через браузер"() {
+    const { page, close } = await openApp({ native: { "Tilt.start": { error: "unavailable" } } });
+    try {
+      await page.click('nav button[data-tab="tools"]');
+      await page.waitForTimeout(600);
+      assert.equal(await page.evaluate(() => tilt.native), false);
+      assert.deepEqual(await page.evaluate(() => window.__calls.filter(c => c.startsWith("Tilt"))), [
+        "Tilt.start",
+      ]);
+    } finally {
+      await close();
+    }
+  },
+};
+
+Object.assign(tests, tests2);
