@@ -26,7 +26,7 @@ export function recView(r: Rec) {
   return { ru, ob, baseK, k: effKind(baseK, r.cond) };
 }
 // Журнал показываем порциями: 600 замеров разом — это ~17 000 элементов и секунды ожидания на телефоне
-const LOG_PAGE = 30;
+const LOG_PAGE = 50;
 let logShown = LOG_PAGE;
 
 export function renderLog() {

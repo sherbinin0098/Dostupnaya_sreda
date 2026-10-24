@@ -127,7 +127,7 @@ export const tests = {
       await newObject(page);
       await page.evaluate(() => {
         const o = curObj();
-        for (let i = 0; i < 100; i++)
+        for (let i = 0; i < 120; i++)
           db.records.push({
             id: "r" + i,
             objId: o.id,
@@ -143,17 +143,17 @@ export const tests = {
         save();
       });
       await tab(page, "log");
-      assert.equal(await page.locator("#app .item").count(), 30);
+      assert.equal(await page.locator("#app .item").count(), 50);
       assert.match(
         await page.textContent("#app"),
-        /соотв\.: 100/,
+        /соотв\.: 120/,
         "итоги считаются по всем замерам, а не по показанным"
       );
       await page.click("#logmore");
-      assert.equal(await page.locator("#app .item").count(), 60);
-      await page.click("#logmore");
-      await page.click("#logmore");
       assert.equal(await page.locator("#app .item").count(), 100);
+      await page.click("#logmore");
+      await page.click("#logmore");
+      assert.equal(await page.locator("#app .item").count(), 120);
       assert.equal(await page.locator("#logmore").count(), 0);
       assert.deepEqual(errors, []);
     } finally {
