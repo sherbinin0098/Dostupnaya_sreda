@@ -152,7 +152,6 @@ export const tests = {
       await page.click("#logmore");
       assert.equal(await page.locator("#app .item").count(), 100);
       await page.click("#logmore");
-      await page.click("#logmore");
       assert.equal(await page.locator("#app .item").count(), 120);
       assert.equal(await page.locator("#logmore").count(), 0);
       assert.deepEqual(errors, []);
