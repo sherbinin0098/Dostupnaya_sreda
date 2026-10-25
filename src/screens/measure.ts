@@ -286,7 +286,10 @@ export function objForm(o) {
   let fg = o ? o.geo || null : null;
   const og = () => {
     byId("ogeo").innerHTML = fg
-      ? geoLine(fg)
+      ? geoLine(fg) +
+        (fg.manual
+          ? `<p class="muted" style="margin:4px 0 0">Точка взята с карты и может отличаться на десятки метров. Чтобы уточнить, нажмите «На карте» и поставьте метку у нужного входа.</p>`
+          : "")
       : `<p class="muted" style="margin:4px 0 0">Место не отмечено. Начните вводить название или адрес — подскажу по карте. Или нажмите «Я здесь».</p>`;
   };
   og();

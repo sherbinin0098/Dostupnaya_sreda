@@ -39,6 +39,13 @@ export const tests = {
       await page.click("#newobj");
       await page.fill("#on", "Дента");
       await page.waitForSelector('.aci[data-i="n0"]', { timeout: 8000 });
+      // в самой подсказке сразу виден адрес здания, а не «ближайшая улица» организации
+      await page.waitForFunction(
+        () => document.querySelector('.aci[data-i="n0"]')?.textContent.includes("Кирова"),
+        null,
+        { timeout: 6000 }
+      );
+      assert.doesNotMatch(await page.locator('.aci[data-i="n0"]').innerText(), /Сакко/);
       await page.click('.aci[data-i="n0"]');
       await page.waitForFunction(() => document.getElementById("oa").value.includes("Кирова"), null, {
         timeout: 5000,

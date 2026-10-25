@@ -305,6 +305,7 @@ export function acNet(q) {
               AC.ns = "done";
               AC.nq = q;
               acRender();
+              acResolveBuildings(list, seq);
             },
             () => {
               if (seq === AC.seq) {
@@ -319,6 +320,26 @@ export function acNet(q) {
       ),
     450
   );
+}
+/**
+ * В подсказках организации без номера дома записаны с ближайшей улицей. Пока человек смотрит на список, по очереди
+ * (публичная карта просит не чаще раза в секунду) узнаём адрес здания, где стоит каждая, и подставляем его в строку.
+ */
+export async function acResolveBuildings(list: any[], seq: number) {
+  let n = 0;
+  for (const o of list) {
+    if (o.house || o.fixed || n >= 4) continue;
+    n++;
+    if (seq !== AC.seq) return;
+    const a = await buildingAddress(o.geo);
+    if (seq !== AC.seq) return;
+    if (a) {
+      o.street = a;
+      o.fixed = true;
+      acRender();
+    }
+    await new Promise(r => setTimeout(r, 1100));
+  }
 }
 export function acRender() {
   const el = AC.el;
@@ -399,7 +420,7 @@ export function acPick(e) {
         address: o.street || o.name,
         geo: { lat: o.geo.lat, lon: o.geo.lon, acc: null, manual: true },
       };
-    if (o && !o.house) poiGeo = o.geo;
+    if (o && !o.house && !o.fixed) poiGeo = o.geo;
   }
   const cb = el._acPick;
   acClose();
