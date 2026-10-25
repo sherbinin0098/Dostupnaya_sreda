@@ -5,7 +5,7 @@ import { newDraft } from "../core/state";
 import { curObj, db, groups, save } from "../core/storage";
 import { byId, esc, fmt, num, uid } from "../core/util";
 import { fillImgs, forgetPhoto, tilesHTML } from "../photos";
-import { geoLine, hereFill, nearbyAddresses, openPicker } from "../place";
+import { geoLine, hereFill, openPicker } from "../place";
 import { exportRows } from "../reports/basic";
 import { OTYPES, bindRoute, routeCardHTML, routeState, startRound } from "../route";
 import { dueBanner } from "./appeals";
@@ -261,7 +261,6 @@ export function objForm(o) {
     <label for="on">Название</label><input id="on" type="text" data-ac="name" autocomplete="off" value="${esc(o ? o.name : "")}" placeholder="Поликлиника № … — подскажу по карте">
     <label for="oa">Адрес</label><input id="oa" type="text" data-ac="addr" autocomplete="off" value="${esc(o ? o.address : "")}" placeholder="ул. …, дом">
     <div id="ogeo"></div>
-    <div id="onear"></div>
     <div class="row" style="margin-top:6px"><button type="button" class="small" id="ohere">📍 Я здесь</button><button type="button" class="small" id="omap">На карте</button></div>
     <label for="ot">Что обследуем</label>
     <select id="ot">${Object.entries(OTYPES)
@@ -308,49 +307,17 @@ export function objForm(o) {
       og();
     }
   };
-  // Адрес, который человек ввёл сам, не перезаписываем: GPS и метка на карте часто попадают на соседнюю улицу.
-  // Вместо этого показываем ближайшие дома, чтобы выбрать нужный одним нажатием.
-  const showNear = async () => {
-    const box = byId("onear");
-    if (!fg || !box) return;
-    box.innerHTML = `<p class="muted" style="margin:6px 0 0">Ищу адреса рядом…</p>`;
-    const list = await nearbyAddresses(fg);
-    if (!byId("onear")) return; // форму уже закрыли
-    byId("onear").innerHTML = list.length
-      ? `<p class="muted" style="margin:6px 0 4px">Рядом с отмеченным местом${fg.acc ? " (GPS ±" + Math.round(fg.acc) + " м)" : ""}. Нажмите на свой дом:</p><div class="chips">${list
-          .map(
-            (x, i) =>
-              `<button type="button" class="small" data-near="${i}">${esc(x.name ? x.name + " — " : "")}${esc(x.address)} · ${x.d} м</button>`
-          )
-          .join("")}</div>`
-      : "";
-    byId("onear")
-      .querySelectorAll("[data-near]")
-      .forEach(b => {
-        b.onclick = () => {
-          const x = list[+b.dataset.near];
-          oad.value = x.address;
-          if (x.name && !onm.value.trim()) onm.value = x.name;
-          byId("onear").innerHTML = "";
-        };
-      });
-  };
-  const fillAddress = (a: string) => {
-    if (a && !oad.value.trim()) oad.value = a; // вручную введённый адрес остаётся как есть
-  };
   byId("ohere").onclick = e =>
     hereFill(e.currentTarget, it => {
-      fillAddress(it.address);
+      if (it.address) oad.value = it.address;
       fg = it.geo;
       og();
-      showNear();
     });
   byId("omap").onclick = () =>
     openPicker(fg, (g, a) => {
       fg = g;
-      fillAddress(a);
+      if (a) oad.value = a;
       og();
-      showNear();
     });
   document.getElementById("ocancel").onclick = () => renderMeasure();
   document.getElementById("osave").onclick = () => {

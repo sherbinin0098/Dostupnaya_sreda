@@ -45,39 +45,6 @@ export function photonAddr(p) {
     city: p.city || p.town || p.village || p.locality || p.district || "",
   };
 }
-export interface NearAddress {
-  address: string;
-  name: string;
-  d: number;
-}
-/** Адреса домов рядом с точкой (из ответа Photon), ближайшие первыми. Нужны, чтобы человек выбрал свой дом, а не доверялся «ближайшей улице». */
-export function parseNearby(json: any, g: { lat: number; lon: number }, limit = 5): NearAddress[] {
-  const seen = new Set<string>(),
-    out: NearAddress[] = [];
-  for (const f of (json && json.features) || []) {
-    const p = f.properties || {},
-      c = f.geometry && f.geometry.coordinates;
-    const address = photonAddr(p).street;
-    if (!p.housenumber || !p.street || !address || !c || seen.has(address)) continue;
-    seen.add(address);
-    out.push({
-      address,
-      name: p.name && p.name !== address ? p.name : "",
-      d: Math.round(dist(g, { lat: c[1], lon: c[0] })),
-    });
-  }
-  return out.sort((a, b) => a.d - b.d).slice(0, limit);
-}
-export async function nearbyAddresses(g: { lat: number; lon: number }): Promise<NearAddress[]> {
-  try {
-    const j = await fetchJSON(
-      `https://photon.komoot.io/reverse?lang=default&limit=12&radius=0.2&lat=${g.lat}&lon=${g.lon}`
-    );
-    return parseNearby(j, g);
-  } catch (e) {
-    return [];
-  }
-}
 export async function reverseGeo(g) {
   try {
     const j = await fetchJSON(
