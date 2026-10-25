@@ -45,6 +45,31 @@ export function photonAddr(p) {
     city: p.city || p.town || p.village || p.locality || p.district || "",
   };
 }
+/** Адрес здания из ответа Nominatim: только если у здания есть номер дома (иначе это просто ближайшая улица). */
+export function buildingAddressFrom(j: any): string | null {
+  const a = j && j.address;
+  if (!a || !a.house_number) return null;
+  const street = a.road || a.pedestrian || a.footway || a.neighbourhood;
+  return street ? street + ", " + a.house_number : null;
+}
+/**
+ * Организация на карте (Photon) часто записана с «ближайшей улицей» без номера дома, хотя стоит в доме с другим адресом
+ * (поликлиника во дворе на Кирова, 27, но с адресом улицы Сакко и Ванцетти). Берём адрес здания, в котором стоит точка.
+ */
+export async function buildingAddress(g: { lat: number; lon: number }): Promise<string | null> {
+  try {
+    return buildingAddressFrom(
+      await fetchJSON(
+        "https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=ru&zoom=18&addressdetails=1&lat=" +
+          g.lat +
+          "&lon=" +
+          g.lon
+      )
+    );
+  } catch (e) {
+    return null;
+  }
+}
 export async function reverseGeo(g) {
   try {
     const j = await fetchJSON(
@@ -360,7 +385,8 @@ export function acPick(e) {
     el = AC.el;
   if (!t || !el) return;
   const i = t.dataset.i;
-  let it = null;
+  let it = null,
+    poiGeo = null;
   if (i === "h") it = { address: AC.here.address, geo: AC.here.geo };
   else if (i[0] === "u") {
     const o = AC.items[+i.slice(1)];
@@ -373,11 +399,17 @@ export function acPick(e) {
         address: o.street || o.name,
         geo: { lat: o.geo.lat, lon: o.geo.lon, acc: null, manual: true },
       };
+    if (o && !o.house) poiGeo = o.geo;
   }
   const cb = el._acPick;
   acClose();
   el.blur();
   if (it && cb) cb(it);
+  // у организации нет номера дома — уточняем адрес по зданию, в котором она стоит
+  if (it && cb && poiGeo)
+    buildingAddress(poiGeo).then(a => {
+      if (a) cb({ address: a });
+    });
 }
 export async function hereFill(btn, cb) {
   const t = btn.textContent;
