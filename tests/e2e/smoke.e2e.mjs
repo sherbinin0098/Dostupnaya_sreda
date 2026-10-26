@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import { strFromU8, unzipSync } from "fflate";
 import os from "node:os";
 import { assert, feed, newObject, openApp, tab } from "./helpers.mjs";
 
@@ -195,6 +197,7 @@ export const tests = {
       await tab(page, "more");
       await page.click('[data-go="export"]');
       await page.selectOption("#eo", await page.evaluate(() => db.currentObj));
+      await page.selectOption("#efmt", "html");
       const dl = page.waitForEvent("download", { timeout: 15000 });
       await page.click("#epass2");
       const path = `${os.tmpdir()}/passport-${Date.now()}.html`;
@@ -224,6 +227,73 @@ export const tests = {
         Object.values(pages).every(v => /^\d+$/.test(v)),
         JSON.stringify(pages)
       );
+      assert.deepEqual(errors, []);
+    } finally {
+      await close();
+    }
+  },
+
+  async "паспорт, акт и анкета по умолчанию — настоящие файлы Word с фото и числом листов"() {
+    const { page, errors, close } = await openApp();
+    try {
+      await newObject(page, { name: "Школа № 7", status: "recon" });
+      await page.evaluate(async () => {
+        const o = curObj();
+        const c = document.createElement("canvas");
+        c.width = 640;
+        c.height = 480;
+        c.getContext("2d").fillRect(0, 0, 640, 480);
+        const blob = await new Promise(r => c.toBlob(r, "image/jpeg"));
+        for (const [i, r] of RULES.filter(x => x.status === "ok" && x.min != null)
+          .slice(0, 30)
+          .entries()) {
+          const photo = i < 4 ? uid() : null;
+          if (photo) await putPhoto(photo, blob);
+          db.records.push({
+            id: "r" + i,
+            objId: o.id,
+            round: 1,
+            ruleId: r.id,
+            value: r.min - 1,
+            result: "bad",
+            ts: 1792700000000 + i,
+            comment: "",
+            fix: "Расширить проём",
+            slots: photo ? { view: photo } : {},
+            photos: photo ? [photo] : [],
+          });
+        }
+        save();
+      });
+      await tab(page, "more");
+      await page.click('[data-go="export"]');
+      await page.selectOption("#eo", await page.evaluate(() => db.currentObj));
+      assert.equal(await page.inputValue("#efmt"), "docx", "по умолчанию — Word");
+      const text = {};
+      for (const [id, want] of [
+        ["epass2", /ПАСПОРТ ДОСТУПНОСТИ/],
+        ["eact", /АКТ ОБСЛЕДОВАНИЯ/],
+        ["eank", /АНКЕТА/],
+      ]) {
+        const dl = page.waitForEvent("download", { timeout: 20000 });
+        await page.click("#" + id);
+        const d = await dl;
+        assert.match(d.suggestedFilename(), /\.docx$/);
+        const file = `${os.tmpdir()}/doc-${id}-${Date.now()}.docx`;
+        await d.saveAs(file);
+        const zip = unzipSync(new Uint8Array(fs.readFileSync(file)));
+        assert.ok(zip["word/document.xml"] && zip["[Content_Types].xml"], "в файле нет основных частей Word");
+        const xml = strFromU8(zip["word/document.xml"]);
+        assert.match(xml.replace(/<[^>]+>/g, ""), want);
+        assert.match(xml, /Школа № 7/);
+        text[id] = { xml, media: Object.keys(zip).filter(k => k.startsWith("word/media/")).length };
+      }
+      assert.equal(text.epass2.media, 4, "четыре фото из замеров должны оказаться в паспорте");
+      assert.match(text.epass2.xml, /на <\/w:t>|на /, "в паспорте есть строки «на N л.»");
+      const sheets = [...text.epass2.xml.replace(/<[^>]+>/g, "|").matchAll(/на \|*(\d+)\|* л\./g)].map(
+        m => m[1]
+      );
+      assert.ok(sheets.length >= 7, "число листов не вписано: " + sheets.join());
       assert.deepEqual(errors, []);
     } finally {
       await close();

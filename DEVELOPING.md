@@ -25,7 +25,8 @@ src/
   core/                  логика без экранов: types, rules (проверка по норме), storage (localStorage, перевод единиц),
                          util, calc (парковка, наклон), voice-parse (число и фраза голосом), state, draft
   screens/               экраны: measure, log, export, norms, appeals, stats, tools, voice-list, dictation
-  reports/               отчёты и документы: basic (CSV, текст), report, compare, passport, passport-short, letter, public
+  reports/               отчёты и документы: basic (CSV, текст), report, compare, passport (страница) и passport-docx (тот же паспорт файлом Word), passport-short, letter, public
+  docx/writer.ts         маленький писатель файлов Word (абзацы, таблицы, картинки), без тяжёлых библиотек
   ui/common.ts           каркас: вкладки, render(), общие блоки
   place.ts photos.ts     место (GPS, карта, поиск адреса) и фото (подпись, пометки)
   native.ts voice.ts     Android: Capacitor-плагины, голос

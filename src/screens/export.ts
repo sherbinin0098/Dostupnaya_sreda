@@ -6,6 +6,7 @@ import { putPhoto } from "../photodb";
 import { buildCSV, buildText } from "../reports/basic";
 import { cmpData, cmpReport, cmpText } from "../reports/compare";
 import { buildLetter } from "../reports/letter";
+import { buildPassportDocx } from "../reports/passport-docx";
 import { buildOfficialPassport } from "../reports/passport";
 import { buildPassport } from "../reports/passport-short";
 import { exportPublic, pubLast } from "../reports/public";
@@ -19,6 +20,7 @@ export function renderExport() {
    <div class="row" style="margin-top:10px"><button id="ecsv" class="primary">Таблица CSV (для Google Таблиц)</button></div>
    <div class="row" style="margin-top:10px"><button id="erep" class="primary">Отчёт с фото</button><button id="erepb">Отчёт с фото: только нарушения</button></div>
    <p class="muted">Отчёт — файл, который открывается на любом телефоне и компьютере как страница: замеры, нормы, пункты, место на карте и фото. Его можно приложить к обращению или распечатать в PDF.</p>
+   <label for="efmt">Формат паспорта, акта и анкеты</label><select id="efmt"><option value="docx">Документ Word (.docx) — открывается в Word, Google Документах, правится</option><option value="html">Страница (.html) — для просмотра и печати из браузера</option></select>
    <div class="row" style="margin-top:10px"><button id="epass2" class="primary">Паспорт доступности ОСИ (по форме приказа № 627)</button></div>
    <div class="row" style="margin-top:10px"><button id="epass">Справка о результатах обследования</button><button id="epub">Данные для публичной карты</button></div>
    <div class="row" style="margin-top:10px"><button id="ecmp">До и после: отчёт</button><button id="ecmpt">До и после: текст</button></div>
@@ -97,16 +99,26 @@ export function renderExport() {
     toast("Готовлю справку…");
     await shareOrDownload("spravka_" + fileSafe(o.name) + ".html", await buildPassport(o.id), "text/html");
   };
-  byId("epass2").onclick = async () => {
+  // паспорт, акт и анкета: по умолчанию настоящий документ Word, по желанию — страница
+  const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  const exportDoc = (kind: string, base: string) => async () => {
     const o = need();
     if (!o) return;
-    toast("Готовлю паспорт…");
-    await shareOrDownload(
-      "pasport_dostupnosti_" + fileSafe(o.name) + ".html",
-      await buildOfficialPassport(o.id),
-      "text/html"
-    );
+    toast("Готовлю документ…");
+    const asWord = (byId("efmt") as HTMLSelectElement).value !== "html";
+    if (asWord) {
+      const d = await buildPassportDocx(o.id, kind);
+      if (!d) return;
+      await shareOrDownload(base + fileSafe(o.name) + ".docx", d.data, DOCX);
+    } else {
+      await shareOrDownload(
+        base + fileSafe(o.name) + ".html",
+        await buildOfficialPassport(o.id, kind),
+        "text/html"
+      );
+    }
   };
+  byId("epass2").onclick = exportDoc("passport", "pasport_dostupnosti_");
   byId("epub").onclick = exportPublic;
   byId("eletter").onclick = () => {
     const o = need();
@@ -117,18 +129,8 @@ export function renderExport() {
     byId("ebtns").classList.remove("hidden");
     p.scrollIntoView({ block: "center" });
   };
-  const doc = (kind, pref) => async () => {
-    const o = need();
-    if (!o) return;
-    toast("Готовлю документ…");
-    await shareOrDownload(
-      pref + fileSafe(o.name) + ".html",
-      await buildOfficialPassport(o.id, kind),
-      "text/html"
-    );
-  };
-  byId("eact").onclick = doc("act", "akt_obsledovaniya_");
-  byId("eank").onclick = doc("anketa", "anketa_");
+  byId("eact").onclick = exportDoc("act", "akt_obsledovaniya_");
+  byId("eank").onclick = exportDoc("anketa", "anketa_");
   byId("efile").onclick = () => {
     const t = byId("eprev").textContent;
     if (!t) return;
