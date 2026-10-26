@@ -1,3 +1,4 @@
+import os from "node:os";
 import { assert, feed, newObject, openApp, tab } from "./helpers.mjs";
 
 export const tests = {
@@ -154,6 +155,75 @@ export const tests = {
       await page.click("#logmore");
       assert.equal(await page.locator("#app .item").count(), 120);
       assert.equal(await page.locator("#logmore").count(), 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await close();
+    }
+  },
+
+  async "паспорт: число листов приложений подставляется само"() {
+    const { page, ctx, errors, close } = await openApp();
+    try {
+      await newObject(page, { name: "Школа", status: "recon" });
+      // 40 замеров по разным разделам и 8 фотографий
+      await page.evaluate(async () => {
+        const o = curObj();
+        const ids = RULES.filter(r => r.status === "ok" && r.min != null).slice(0, 60);
+        const c = document.createElement("canvas");
+        c.width = 800;
+        c.height = 600;
+        c.getContext("2d").fillRect(0, 0, 800, 600);
+        const blob = await new Promise(r => c.toBlob(r, "image/jpeg"));
+        for (const [i, r] of ids.entries()) {
+          const photo = i < 8 ? uid() : null;
+          if (photo) await putPhoto(photo, blob);
+          db.records.push({
+            id: "r" + i,
+            objId: o.id,
+            round: 1,
+            ruleId: r.id,
+            value: r.min,
+            result: "ok",
+            ts: 1792700000000 + i,
+            comment: "",
+            slots: photo ? { view: photo } : {},
+            photos: photo ? [photo] : [],
+          });
+        }
+        save();
+      });
+      await tab(page, "more");
+      await page.click('[data-go="export"]');
+      await page.selectOption("#eo", await page.evaluate(() => db.currentObj));
+      const dl = page.waitForEvent("download", { timeout: 15000 });
+      await page.click("#epass2");
+      const path = `${os.tmpdir()}/passport-${Date.now()}.html`;
+      await (await dl).saveAs(path);
+      const doc = await ctx.newPage();
+      await doc.goto("file://" + path);
+      await doc.waitForFunction(
+        () => [...document.querySelectorAll("[data-pages]")].every(e => e.textContent.trim() !== ""),
+        null,
+        { timeout: 10000 }
+      );
+      const pages = await doc.evaluate(() =>
+        Object.fromEntries(
+          [...document.querySelectorAll("[data-pages]")].map(e => [e.dataset.pages, e.textContent])
+        )
+      );
+      const zones = Object.entries(pages).filter(([k]) => k.startsWith("z"));
+      assert.ok(
+        zones.some(([, v]) => Number(v) >= 1),
+        "ни у одной зоны не посчитаны листы: " + JSON.stringify(pages)
+      );
+      assert.ok(
+        Number(pages.photos) >= 2,
+        "8 фото должны занять не меньше двух листов: " + JSON.stringify(pages)
+      );
+      assert.ok(
+        Object.values(pages).every(v => /^\d+$/.test(v)),
+        JSON.stringify(pages)
+      );
       assert.deepEqual(errors, []);
     } finally {
       await close();

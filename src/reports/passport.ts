@@ -49,6 +49,27 @@ export function zoneCode(
   else code = "ВНД (К)";
   return { code, n: mine.length, c, cover };
 }
+/**
+ * Скрипт внутри готового документа: считает, на скольких листах A4 (поля 15 мм) уместились приложения, и вписывает числа
+ * в поля «на __ л.». Работает, когда документ открыт в браузере; поля остаются редактируемыми.
+ */
+const PAGES_SCRIPT = `(function(){
+var PW=680, PH=1009; // ширина и высота рабочей области листа A4 с полями 15 мм, в пикселях
+function measure(el){
+  var box=document.createElement("div"); box.style.cssText="position:absolute;left:-9999px;top:0;width:"+PW+"px";
+  var c=el.cloneNode(true); c.removeAttribute("id"); box.appendChild(c); document.body.appendChild(box);
+  var imgs=[].slice.call(box.querySelectorAll("img")).map(function(i){ return i.decode ? i.decode().catch(function(){}) : Promise.resolve(); });
+  return Promise.all(imgs).then(function(){ var h=box.offsetHeight; box.remove(); return h; });
+}
+function pages(h){ return Math.max(1, Math.ceil((h-4)/PH)); }
+function set(id, text){ document.querySelectorAll('[data-pages="'+id+'"]').forEach(function(e){ if(!e.dataset.edited) e.textContent=text; }); }
+document.querySelectorAll("[data-pages]").forEach(function(e){ e.addEventListener("input", function(){ e.dataset.edited="1"; }); });
+var jobs=[];
+document.querySelectorAll(".zsec").forEach(function(sec){ jobs.push(measure(sec).then(function(h){ set("z"+sec.dataset.z, String(pages(h))); })); });
+document.querySelectorAll('[data-pages^="z"]').forEach(function(e){ if(!document.querySelector('.zsec[data-z="'+e.dataset.pages.slice(1)+'"]')) set(e.dataset.pages, "0"); });
+var gal=document.getElementById("gal");
+if(gal) jobs.push(measure(gal).then(function(h){ set("photos", String(pages(h))); })); else set("photos","0");
+})();`;
 export async function buildOfficialPassport(objId: string, kind?: string) {
   kind = kind || "passport";
   const TT =
@@ -162,17 +183,20 @@ export async function buildOfficialPassport(objId: string, kind?: string) {
       .filter(x => x.rows.length)
       .map(
         (x, zi) =>
-          `<h3>${PZONES.indexOf(PZONES.find(z => z[0] === x.name)) + 1}. ${esc(x.name)}</h3><table class="f"><tr><th>Параметр</th><th>Факт</th><th>Требуется</th><th>Основание</th><th>Результат</th><th>Что сделать</th></tr>` +
+          `<div class="zsec" data-z="${PZONES.indexOf(PZONES.find(z => z[0] === x.name)) + 1}"><h3>${PZONES.indexOf(PZONES.find(z => z[0] === x.name)) + 1}. ${esc(x.name)}</h3><table class="f"><tr><th>Параметр</th><th>Факт</th><th>Требуется</th><th>Основание</th><th>Результат</th><th>Что сделать</th></tr>` +
           x.rows
             .map(
               ({ r, v }) =>
                 `<tr><td>${esc(v.ru.name)}</td><td>${fmt(r.value)} ${esc(v.ru.unit)}</td><td>${esc(normText(v.ru))}</td><td>${esc(v.ru.clause)}, ${esc(v.ru.doc)}</td><td><span class="res ${RES[v.k][1]}" style="margin:0;font-size:13px">${RES[v.k][0]}</span>${v.baseK === "relax" ? `<div class="sm">условие: ${esc(condState(v, r))}</div>` : ""}</td><td>${esc(r.fix || "")}</td></tr>`
             )
             .join("") +
-          `</table>`
+          `</table></div>`
       )
       .join("") || "<p>Замеров нет.</p>";
-  const sheets = (k, txt) => `${k}. ${txt} на ${f("", 36)} л.`;
+  // число листов подставляется скриптом внизу страницы (по размеру A4), поле можно поправить вручную
+  const pagesField = id =>
+    `<span class="fill" contenteditable="true" data-pages="${id}" style="min-width:36px"></span>`;
+  const sheets = (k, txt) => `${k}. ${txt} на ${pagesField("z" + k)} л.`;
   const abbr = `<p><b>Категории инвалидов:</b> К — инвалиды, передвигающиеся на креслах-колясках; О (ОДА) — с нарушениями опорно-двигательного аппарата; С — с нарушениями зрения; Г — с нарушениями слуха; У — с нарушениями умственного развития.</p>
 <p><b>Состояние доступности объекта (зоны):</b> ДП — доступно полностью; ДЧ — доступно частично; ДУ — доступно условно; ВНД — временно недоступно. Буква «В» — всем, «И» — избирательно (указываются категории).</p>
 <p><b>Вариант организации доступности объекта (формы обслуживания):</b> «А» — доступность всех зон и помещений, универсальная; «Б» — доступны специально выделенные участки и помещения; «ДУ» — доступность условная: дополнительная помощь сотрудника, услуги на дому, дистанционно; «ВНД» — не организована доступность.</p>
@@ -185,7 +209,7 @@ export async function buildOfficialPassport(objId: string, kind?: string) {
 .ut{text-align:right;margin-bottom:10px}.hint{background:#fff8e1;border:1px solid #e8c766;border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0}
 .cover{min-height:90vh;text-align:center;display:flex;flex-direction:column;justify-content:space-between;padding:30px 0}.cover h1{font-size:26px;margin:40px 0 10px}.cover .big{font-size:20px;font-weight:700}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}.gal figure{break-inside:avoid}.gal img{width:100%;border-radius:6px}
-@media print{.hint,.noprint{display:none}.fill,.fc{background:none!important;outline:none!important}.pb{break-before:page}}.pb{margin-top:30px}`;
+@page{size:A4;margin:15mm}@media print{.hint,.noprint{display:none}.fill,.fc{background:none!important;outline:none!important}.pb{break-before:page}}.pb{margin-top:30px}`;
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${TT[0]} — ${esc(o.name)}</title><style>${css}</style></head><body>
 <div class="hint">Паспорт доступности объекта социальной инфраструктуры по структуре приложений А.2 и А.4 к приказу Минтруда России от 25.12.2012 № 627, с титульным листом, обозначениями, приложениями и нумерацией фото, как в образцах паспортов. Серые поля можно править прямо на этой странице перед печатью или сохранением в PDF. Коды состояния доступности (ДП-И, ДЧ-И, ВНД) предварительные, по замерам для инвалидов на колясках (К): окончательно их определяет комиссия.</div>
 ${
@@ -239,14 +263,14 @@ ${
 <p>4.4. Для принятия решения требуется, не требуется (нужное подчеркнуть): 4.4.1. согласование с Комиссией ${f("", 180)}; 4.4.2. согласование с надзорными органами (в сфере проектирования и строительства, архитектуры, охраны памятников, другое — указать) ${f("", 180)}; 4.4.3. техническая экспертиза; разработка проектно-сметной документации; 4.4.4. согласование с вышестоящей организацией (собственником объекта); 4.4.5. согласование с общественными организациями инвалидов; 4.4.6. имеется заключение уполномоченной организации о состоянии доступности объекта (наименование документа и выдавшей его организации, дата), прилагается: ${f("", 200)}</p>
 <p>4.5. Информация размещена (обновлена) на Карте доступности субъекта Российской Федерации, дата: ${f("", 160)} (наименование сайта, портала)</p>
 <h2>5. Особые отметки</h2>
-<p><b>ПРИЛОЖЕНИЯ:</b><br>Результаты обследования:<br>${PZONES.map((z, i) => sheets(i + 1, z[0].replace(/\s*\(.*\)/, ""))).join("<br>")}<br>Результаты фотофиксации на объекте: ${photos.length} фото на ${f("", 36)} л.<br>Поэтажные планы, паспорт БТИ ${f("", 160)} на ${f("", 36)} л.<br>Другое (в том числе дополнительная информация о путях движения к объекту): ${f("", 260)}</p>
+<p><b>ПРИЛОЖЕНИЯ:</b><br>Результаты обследования:<br>${PZONES.map((z, i) => sheets(i + 1, z[0].replace(/\s*\(.*\)/, ""))).join("<br>")}<br>Результаты фотофиксации на объекте: ${photos.length} фото на ${pagesField("photos")} л.<br>Поэтажные планы, паспорт БТИ ${f("", 160)} на ${f("", 36)} л.<br>Другое (в том числе дополнительная информация о путях движения к объекту): ${f("", 260)}</p>
 <p>Паспорт сформирован на основании: 1. Анкеты (информации об объекте) от «__» ___________ 20__ г.; 2. Акта обследования объекта: № акта ${f("", 100)} от «__» ___________ 20__ г.; 3. Решения Комиссии ${f("", 200)} от «__» ___________ 20__ г.</p>
 <p>Обследование выполнено: ${f(db.settings.author || "", 200)}, ${dt(Date.now())}. Нормы: ${esc(NORMS_VERSION)}.</p></div>
 ${
   kind === "anketa"
     ? ""
     : `<div class="pb"><h2>Приложение 1. Результаты обследования по зонам</h2><p class="sm">Все замеры текущего обследования (№${rnd(o)}). Зоны соответствуют разделу 3.4 паспорта.</p>${app1}</div>
-<div class="pb"><h2>Приложение 2. Результаты фотофиксации</h2>${photos.length ? `<div class="gal">` + photos.map(p => `<figure><img src="${p.d}" alt="Фото ${p.n}"><figcaption><b>Фото № ${p.n}.</b> ${esc(p.name)} — ${esc(p.cap)}. ${esc(p.res)}. Зона: ${esc(p.zone.replace(/\s*\(.*\)/, ""))}</figcaption></figure>`).join("") + `</div>` : "<p>Фото не приложены.</p>"}</div>
+<div class="pb"><h2>Приложение 2. Результаты фотофиксации</h2>${photos.length ? `<div class="gal" id="gal">` + photos.map(p => `<figure><img src="${p.d}" alt="Фото ${p.n}"><figcaption><b>Фото № ${p.n}.</b> ${esc(p.name)} — ${esc(p.cap)}. ${esc(p.res)}. Зона: ${esc(p.zone.replace(/\s*\(.*\)/, ""))}</figcaption></figure>`).join("") + `</div>` : "<p>Фото не приложены.</p>"}</div>
 `
-}<p class="muted">Результат — рабочая подсказка, а не юридическое заключение. Значения норм со статусом «требует сверки» нужно проверить по полному тексту.</p></body></html>`;
+}<p class="muted">Результат — рабочая подсказка, а не юридическое заключение. Значения норм со статусом «требует сверки» нужно проверить по полному тексту.</p><script>${PAGES_SCRIPT}</script></body></html>`;
 }
