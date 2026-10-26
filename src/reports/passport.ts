@@ -69,8 +69,9 @@ document.querySelectorAll(".zsec").forEach(function(sec){ jobs.push(measure(sec)
 document.querySelectorAll('[data-pages^="z"]').forEach(function(e){ if(!document.querySelector('.zsec[data-z="'+e.dataset.pages.slice(1)+'"]')) set(e.dataset.pages, "0"); });
 var gal=document.getElementById("gal");
 if(gal) jobs.push(measure(gal).then(function(h){ set("photos", String(pages(h))); })); else set("photos","0");
+Promise.all(jobs).then(function(){ window.__pagesReady = true; });
 })();`;
-export async function buildOfficialPassport(objId: string, kind?: string) {
+export async function buildOfficialPassport(objId: string, kind?: string, forPdf = false) {
   kind = kind || "passport";
   const TT =
     kind === "act"
@@ -209,7 +210,7 @@ export async function buildOfficialPassport(objId: string, kind?: string) {
 .ut{text-align:right;margin-bottom:10px}.hint{background:#fff8e1;border:1px solid #e8c766;border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0}
 .cover{min-height:90vh;text-align:center;display:flex;flex-direction:column;justify-content:space-between;padding:30px 0}.cover h1{font-size:26px;margin:40px 0 10px}.cover .big{font-size:20px;font-weight:700}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}.gal figure{break-inside:avoid}.gal img{width:100%;border-radius:6px}
-@page{size:A4;margin:15mm}@media print{.hint,.noprint{display:none}.fill,.fc{background:none!important;outline:none!important}.pb{break-before:page}}.pb{margin-top:30px}`;
+${forPdf ? "" : "@page{size:A4;margin:15mm}"}@media print{.zsec+.zsec{break-before:page}.hint,.noprint{display:none}.fill,.fc{background:none!important;outline:none!important}.pb{break-before:page}}.pb{margin-top:30px}`;
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${TT[0]} — ${esc(o.name)}</title><style>${css}</style></head><body>
 <div class="hint">Паспорт доступности объекта социальной инфраструктуры по структуре приложений А.2 и А.4 к приказу Минтруда России от 25.12.2012 № 627, с титульным листом, обозначениями, приложениями и нумерацией фото, как в образцах паспортов. Серые поля можно править прямо на этой странице перед печатью или сохранением в PDF. Коды состояния доступности (ДП-И, ДЧ-И, ВНД) предварительные, по замерам для инвалидов на колясках (К): окончательно их определяет комиссия.</div>
 ${

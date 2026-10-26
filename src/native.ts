@@ -36,6 +36,27 @@ export async function nativeShareBlob(name: string, blob: Blob) {
   }
   await NShare.share({ title: name, url: w.uri });
 }
+/** PDF из готовой страницы: печатает родной движок телефона (плагин Pdf), затем файл уходит в «Поделиться». */
+export async function nativePdfFromHtml(html: string, name: string) {
+  const r = await nCall("Pdf", "fromHtml", { html, name });
+  const u = await nCall("Filesystem", "getUri", { path: r.name, directory: "CACHE" });
+  await NShare.share({ title: name, url: u.uri });
+  return r as { name: string; pages: number; size: number };
+}
+/** В браузере: открывает окно печати (там «Сохранить как PDF»). */
+export function printHtmlInBrowser(html: string) {
+  const f = document.createElement("iframe");
+  f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+  document.body.appendChild(f);
+  f.onload = () => {
+    setTimeout(() => {
+      f.contentWindow?.focus();
+      f.contentWindow?.print();
+      setTimeout(() => f.remove(), 60000);
+    }, 800);
+  };
+  f.srcdoc = html;
+}
 export function download(name, text, type) {
   const b = new Blob([text], { type });
   const a = document.createElement("a");

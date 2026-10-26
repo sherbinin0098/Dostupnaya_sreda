@@ -25,8 +25,8 @@ done
 
 # плагины и классы в коде
 DEX=$(cat "$TMP"/classes*.dex | strings)
-for c in MainActivity DictationPlugin TiltPlugin; do chk "класс $c" "echo \"\$DEX\" | grep -q \"ru/gorynych/dostupnost/$c;\""; done
-for m in listenQuiet micPermission no_permission gravity accelerometer; do chk "в коде есть «$m»" "echo \"\$DEX\" | grep -q \"$m\""; done
+for c in MainActivity DictationPlugin TiltPlugin PdfPlugin; do chk "класс $c" "echo \"\$DEX\" | grep -q \"ru/gorynych/dostupnost/$c;\""; done
+for m in listenQuiet micPermission no_permission gravity accelerometer fromHtml; do chk "в коде есть «$m»" "echo \"\$DEX\" | grep -q \"$m\""; done
 chk "Capacitor-плагины (файлы, поделиться, напоминания)" "grep -q Filesystem \"$TMP/assets/capacitor.plugins.json\" && grep -q 'Share' \"$TMP/assets/capacitor.plugins.json\" && grep -q LocalNotifications \"$TMP/assets/capacitor.plugins.json\""
 
 # веб-часть

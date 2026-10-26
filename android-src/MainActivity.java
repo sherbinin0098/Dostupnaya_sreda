@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(DictationPlugin.class);
         registerPlugin(TiltPlugin.class);
+        registerPlugin(PdfPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

@@ -93,6 +93,10 @@ jobs:
             sed "s/__PKG__/$PKG/" android-src/DictationPlugin.kt > "$DIR/DictationPlugin.kt"
           fi
           sed "s/__PKG__/$PKG/" android-src/TiltPlugin.kt > "$DIR/TiltPlugin.kt"
+          sed "s/__PKG__/$PKG/" android-src/PdfPlugin.kt > "$DIR/PdfPlugin.kt"
+          # помощник печати должен лежать в пакете android.print (иначе обратные вызовы печати недоступны)
+          mkdir -p android/app/src/main/java/android/print
+          cp android-src/android-print/PdfPrinter.java android/app/src/main/java/android/print/PdfPrinter.java
           grep -n "registerPlugin" "$DIR/MainActivity.java"
 
       - name: Разрешения (камера, геолокация) и номер версии

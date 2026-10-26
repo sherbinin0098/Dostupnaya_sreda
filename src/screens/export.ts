@@ -1,7 +1,7 @@
 import { mergeBackup } from "../backup";
 import { db, migrateUnits, replaceDb, save } from "../core/storage";
 import { byId, dataURLtoBlob, esc, fileSafe } from "../core/util";
-import { NShare, isNative, shareOrDownload } from "../native";
+import { NShare, isNative, nativePdfFromHtml, printHtmlInBrowser, shareOrDownload } from "../native";
 import { putPhoto } from "../photodb";
 import { buildCSV, buildText } from "../reports/basic";
 import { cmpData, cmpReport, cmpText } from "../reports/compare";
@@ -20,7 +20,7 @@ export function renderExport() {
    <div class="row" style="margin-top:10px"><button id="ecsv" class="primary">Таблица CSV (для Google Таблиц)</button></div>
    <div class="row" style="margin-top:10px"><button id="erep" class="primary">Отчёт с фото</button><button id="erepb">Отчёт с фото: только нарушения</button></div>
    <p class="muted">Отчёт — файл, который открывается на любом телефоне и компьютере как страница: замеры, нормы, пункты, место на карте и фото. Его можно приложить к обращению или распечатать в PDF.</p>
-   <label for="efmt">Формат паспорта, акта и анкеты</label><select id="efmt"><option value="docx">Документ Word (.docx) — открывается в Word, Google Документах, правится</option><option value="html">Страница (.html) — для просмотра и печати из браузера</option></select>
+   <label for="efmt">Формат паспорта, акта и анкеты</label><select id="efmt"><option value="docx">Документ Word (.docx) — открывается в Word, Google Документах, правится</option><option value="pdf">Документ PDF (.pdf) — готов к отправке, не правится</option><option value="html">Страница (.html) — для просмотра и печати из браузера</option></select>
    <div class="row" style="margin-top:10px"><button id="epass2" class="primary">Паспорт доступности ОСИ (по форме приказа № 627)</button></div>
    <div class="row" style="margin-top:10px"><button id="epass">Справка о результатах обследования</button><button id="epub">Данные для публичной карты</button></div>
    <div class="row" style="margin-top:10px"><button id="ecmp">До и после: отчёт</button><button id="ecmpt">До и после: текст</button></div>
@@ -105,8 +105,23 @@ export function renderExport() {
     const o = need();
     if (!o) return;
     toast("Готовлю документ…");
-    const asWord = (byId("efmt") as HTMLSelectElement).value !== "html";
-    if (asWord) {
+    const fmt = (byId("efmt") as HTMLSelectElement).value;
+    if (fmt === "pdf") {
+      const html = await buildOfficialPassport(o.id, kind, true);
+      if (isNative) {
+        try {
+          await nativePdfFromHtml(html, base + fileSafe(o.name) + ".pdf");
+        } catch (e) {
+          if (!(e && /cancel/i.test(String((e as any).message || e))))
+            alert(
+              "Не удалось подготовить PDF на этом телефоне. Сохраните документ как Word (.docx) и сделайте PDF из него."
+            );
+        }
+      } else {
+        printHtmlInBrowser(html);
+        toast("В окне печати выберите «Сохранить как PDF»");
+      }
+    } else if (fmt !== "html") {
       const d = await buildPassportDocx(o.id, kind);
       if (!d) return;
       await shareOrDownload(base + fileSafe(o.name) + ".docx", d.data, DOCX);
